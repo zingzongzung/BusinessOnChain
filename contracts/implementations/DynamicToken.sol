@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.27;
 
 import {IERC7496} from "./../interfaces/IERC7496.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-library EntityTokenStorage {
+library DynamicTokenStorage {
     struct Layout {
         /// @dev A mapping of token ID to a mapping of trait key to trait value.
         mapping(uint256 tokenId => mapping(bytes32 traitKey => bytes32 traitValue)) _traits;
@@ -16,13 +16,11 @@ library EntityTokenStorage {
         string _traitMetadataURI;
     }
 
-    bytes32 internal constant STORAGE_SLOT =
-        keccak256("contracts.storage.EntityToken");
-
-    function layout() internal pure returns (Layout storage l) {
-        bytes32 slot = STORAGE_SLOT;
+    function layout(
+        bytes32 storage_slot
+    ) internal pure returns (Layout storage l) {
         assembly {
-            l.slot := slot
+            l.slot := storage_slot
         }
     }
 }
@@ -48,15 +46,32 @@ abstract contract DynamicToken is
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _nextTokenId;
     mapping(uint => uint) tokenURIVersion;
+    mapping(uint => bytes32[]) tokenAttributes;
+    bytes32 internal STORAGE_SLOT;
 
     constructor(
         address defaultAdmin,
         address minter,
         string memory name,
-        string memory symbol
+        string memory symbol,
+        string memory storage_slot_name
     ) ERC721(name, symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MINTER_ROLE, minter);
+        STORAGE_SLOT = keccak256(abi.encodePacked(storage_slot_name));
+    }
+
+    function _setTokenAttributes(
+        uint tokenId,
+        bytes32[] memory attributes
+    ) internal {
+        tokenAttributes[tokenId] = attributes;
+    }
+
+    function getTokenAttributes(
+        uint tokenId
+    ) external view returns (bytes32[] memory attributes) {
+        return tokenAttributes[tokenId];
     }
 
     function _updateTokenURI(uint tokenId) internal {
@@ -79,9 +94,14 @@ abstract contract DynamicToken is
         return super.tokenURI(tokenId);
     }
 
-    function safeMint(address to) public onlyRole(MINTER_ROLE) {
+    function safeMint(
+        address to,
+        bytes32[] memory attributes
+    ) public onlyRole(MINTER_ROLE) {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
+        _setTokenAttributes(tokenId, attributes);
+        _updateTokenURI(tokenId);
     }
 
     // The following functions are overrides required by Solidity.
@@ -101,7 +121,7 @@ abstract contract DynamicToken is
         super._increaseBalance(account, value);
     }
 
-    using EntityTokenStorage for EntityTokenStorage.Layout;
+    using DynamicTokenStorage for DynamicTokenStorage.Layout;
 
     error TraitValueUnchanged();
 
@@ -115,7 +135,8 @@ abstract contract DynamicToken is
         bytes32 traitKey
     ) public view virtual returns (bytes32 traitValue) {
         // Return the trait value.
-        return EntityTokenStorage.layout()._traits[tokenId][traitKey];
+        return
+            DynamicTokenStorage.layout(STORAGE_SLOT)._traits[tokenId][traitKey];
     }
 
     /**
@@ -151,7 +172,7 @@ abstract contract DynamicToken is
         returns (string memory labelsURI)
     {
         // Return the trait metadata URI.
-        //return EntityTokenStorage.layout()._traitMetadataURI;
+        //return DynamicTokenStorage.layout()._traitMetadataURI;
         return
             "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/MetadataURI/EntityTokenMetadataURI";
     }
@@ -170,9 +191,9 @@ abstract contract DynamicToken is
         bytes32 newValue
     ) public virtual {
         // Revert if the new value is the same as the existing value.
-        bytes32 existingValue = EntityTokenStorage.layout()._traits[tokenId][
-            traitKey
-        ];
+        bytes32 existingValue = DynamicTokenStorage
+            .layout(STORAGE_SLOT)
+            ._traits[tokenId][traitKey];
         if (existingValue == newValue) {
             revert TraitValueUnchanged();
         }
@@ -199,7 +220,9 @@ abstract contract DynamicToken is
         bytes32 newValue
     ) internal virtual {
         // Set the new trait value.
-        EntityTokenStorage.layout()._traits[tokenId][traitKey] = newValue;
+        DynamicTokenStorage.layout(STORAGE_SLOT)._traits[tokenId][
+            traitKey
+        ] = newValue;
     }
 
     /**
@@ -208,7 +231,7 @@ abstract contract DynamicToken is
      */
     function _setTraitMetadataURI(string memory uri) internal virtual {
         // Set the new trait metadata URI.
-        EntityTokenStorage.layout()._traitMetadataURI = uri;
+        DynamicTokenStorage.layout(STORAGE_SLOT)._traitMetadataURI = uri;
 
         // Emit the event noting the update.
         emit TraitMetadataURIUpdated();
