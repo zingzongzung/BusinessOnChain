@@ -6,30 +6,17 @@ import {ServiceToken} from "./../implementations/ServiceToken.sol";
 
 contract LoyaltyToken is DynamicToken, ServiceToken {
     constructor(
-        address defaultAdmin,
-        address minter
-    )
-        DynamicToken(
-            defaultAdmin,
-            minter,
-            "LoyaltyToken",
-            "Token",
-            "contracts.storage.erc7496-loyaltytoken"
-        )
-    {}
+        address defaultAdmin
+    ) DynamicToken(defaultAdmin, "LoyaltyToken", "Token") {
+        bytes32[] memory attributes = new bytes32[](2);
+        attributes[0] = bytes32(abi.encodePacked("Name"));
+        attributes[1] = bytes32(abi.encodePacked("Points"));
+        _setTokenAttributes(attributes);
+    }
 
     function _baseURI() internal view virtual override returns (string memory) {
         return
             "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/LoyaltyTokenURI/";
-    }
-
-    function safeMint(
-        address to,
-        bytes32[] memory attributes,
-        uint nodeFatherId,
-        address nodeFatherAddress
-    ) public canMint(nodeFatherId, nodeFatherAddress) {
-        _safeMint(to, attributes);
     }
 
     /**

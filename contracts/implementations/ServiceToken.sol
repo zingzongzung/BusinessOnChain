@@ -2,34 +2,11 @@
 pragma solidity ^0.8.27;
 
 import {IServiceToken} from "./../interfaces/IServiceToken.sol";
-import {IEntityToken} from "./../interfaces/IEntityToken.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 abstract contract ServiceToken is IServiceToken, ERC165 {
     using ERC165Checker for address;
-
-    struct test {
-        uint tokenId;
-        address addressId;
-    }
-
-    error NotAnEntityTokenAddress();
-    error ServiceNotAddedToThisEntity();
-    error TokenNotOwned();
-
-    mapping(uint => test) tokenFathers;
-
-    bytes4 public constant ENTITY_INTERFACE_ID = type(IEntityToken).interfaceId;
-
-    function createRelation(
-        uint tokenId,
-        uint tokenFatherId,
-        address tokenFatherAddress
-    ) internal canMint(tokenFatherId, tokenFatherAddress) {
-        tokenFathers[tokenId] = test(tokenFatherId, tokenFatherAddress);
-    }
 
     function supportsInterface(
         bytes4 interfaceId
@@ -37,24 +14,5 @@ abstract contract ServiceToken is IServiceToken, ERC165 {
         return
             interfaceId == type(IServiceToken).interfaceId ||
             super.supportsInterface(interfaceId);
-    }
-
-    //This should be specified so that every service contract uses this to mint
-    modifier canMint(uint tokenFatherId, address tokenFatherAddress) {
-        if (!tokenFatherAddress.supportsInterface(ENTITY_INTERFACE_ID)) {
-            revert NotAnEntityTokenAddress();
-        }
-
-        IEntityToken entityToken = IEntityToken(tokenFatherAddress);
-        if (!entityToken.hasService(tokenFatherId, address(this))) {
-            revert ServiceNotAddedToThisEntity();
-        }
-
-        IERC721 nftToken = IERC721(tokenFatherAddress);
-        if (nftToken.ownerOf(tokenFatherId) != msg.sender) {
-            revert TokenNotOwned();
-        }
-
-        _;
     }
 }

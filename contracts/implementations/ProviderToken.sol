@@ -3,26 +3,33 @@ pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {IProviderToken} from "./../interfaces/IProviderToken.sol";
 import {IServiceToken} from "./../interfaces/IServiceToken.sol";
-import {IEntityToken} from "./../interfaces/IEntityToken.sol";
 import {DynamicToken} from "./DynamicToken.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-abstract contract EntityToken is IEntityToken, ERC165, DynamicToken {
-    using ERC165Checker for address;
-
-    error NotAServiceTokenAddress();
+abstract contract ProviderToken is IProviderToken, ERC165 {
     error ServiceTokenAlreadyRegistered();
+    error NotAServiceTokenAddress();
+    error TokenNotOwned();
+
+    using ERC165Checker for address;
 
     bytes4 public constant SERVICE_INTERFACE_ID =
         type(IServiceToken).interfaceId;
 
     mapping(uint => address[]) tokenRegisteredServices;
 
-    //TODO Add validations of ownership plus token existance
-    function addService(uint tokenId, address serviceAddress) public {
+    function addService(uint tokenId, address serviceAddress) external {
         if (!serviceAddress.supportsInterface(SERVICE_INTERFACE_ID)) {
             revert NotAServiceTokenAddress();
         }
+
+        IERC721 nftToken = IERC721(address(this));
+        if (nftToken.ownerOf(tokenId) != msg.sender) {
+            revert TokenNotOwned();
+        }
+
         if (isAddressPresent(tokenId, serviceAddress)) {
             revert ServiceTokenAlreadyRegistered();
         }
@@ -52,15 +59,9 @@ abstract contract EntityToken is IEntityToken, ERC165, DynamicToken {
 
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        virtual
-        override(ERC165, IERC165, DynamicToken)
-        returns (bool)
-    {
+    ) public view virtual override(ERC165, IERC165) returns (bool) {
         return
-            interfaceId == type(IEntityToken).interfaceId ||
+            interfaceId == type(IProviderToken).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 }

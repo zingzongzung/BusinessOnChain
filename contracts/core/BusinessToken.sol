@@ -2,29 +2,21 @@
 pragma solidity ^0.8.27;
 
 import {DynamicToken} from "./../implementations/DynamicToken.sol";
-import {EntityToken} from "./../implementations/EntityToken.sol";
+import {ProviderToken} from "./../implementations/ProviderToken.sol";
 
-contract BusinessToken is EntityToken {
+contract BusinessToken is DynamicToken, ProviderToken {
     constructor(
-        address defaultAdmin,
-        address minter
-    )
-        DynamicToken(
-            defaultAdmin,
-            minter,
-            "BusinessToken",
-            "BTK",
-            "contracts.storage.erc7496-businesstoken"
-        )
-    {}
+        address defaultAdmin
+    ) DynamicToken(defaultAdmin, "BusinessToken", "BTK") {
+        bytes32[] memory attributes = new bytes32[](2);
+        attributes[0] = bytes32(abi.encodePacked("Name"));
+        attributes[1] = bytes32(abi.encodePacked("Sector"));
+        _setTokenAttributes(attributes);
+    }
 
     function _baseURI() internal view virtual override returns (string memory) {
         return
             "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/BusinessTokenURI/";
-    }
-
-    function safeMint(address to, bytes32[] memory attributes) public {
-        _safeMint(to, attributes);
     }
 
     /**
@@ -32,7 +24,7 @@ contract BusinessToken is EntityToken {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(EntityToken) returns (bool) {
+    ) public view virtual override(DynamicToken, ProviderToken) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
