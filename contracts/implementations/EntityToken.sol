@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IServiceToken} from "./../interfaces/IServiceToken.sol";
 import {IEntityToken} from "./../interfaces/IEntityToken.sol";
+import {DynamicToken} from "./DynamicToken.sol";
 
-abstract contract EntityToken is IEntityToken, ERC165 {
+abstract contract EntityToken is IEntityToken, ERC165, DynamicToken {
     using ERC165Checker for address;
 
     error NotAServiceTokenAddress();
@@ -51,7 +52,13 @@ abstract contract EntityToken is IEntityToken, ERC165 {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC165, IERC165) returns (bool) {
+    )
+        public
+        view
+        virtual
+        override(ERC165, IERC165, DynamicToken)
+        returns (bool)
+    {
         return
             interfaceId == type(IEntityToken).interfaceId ||
             super.supportsInterface(interfaceId);

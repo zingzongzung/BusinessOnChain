@@ -4,7 +4,7 @@ pragma solidity ^0.8.27;
 import {DynamicToken} from "./../implementations/DynamicToken.sol";
 import {EntityToken} from "./../implementations/EntityToken.sol";
 
-contract BusinessToken is DynamicToken, EntityToken {
+contract BusinessToken is EntityToken {
     constructor(
         address defaultAdmin,
         address minter
@@ -32,7 +32,7 @@ contract BusinessToken is DynamicToken, EntityToken {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(DynamicToken, EntityToken) returns (bool) {
+    ) public view virtual override(EntityToken) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
