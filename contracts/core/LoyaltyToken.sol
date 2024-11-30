@@ -16,7 +16,7 @@ contract LoyaltyToken is DynamicToken, ServiceToken {
 
     function _baseURI() internal view virtual override returns (string memory) {
         return
-            "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/LoyaltyTokenURI/";
+            "https://personal-ixqe4210.outsystemscloud.com/NFTApi/rest/LoyaltyTokenURI/";
     }
 
     /**

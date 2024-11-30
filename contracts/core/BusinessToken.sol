@@ -16,7 +16,7 @@ contract BusinessToken is DynamicToken, ProviderToken {
 
     function _baseURI() internal view virtual override returns (string memory) {
         return
-            "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/BusinessTokenURI/";
+            "https://personal-ixqe4210.outsystemscloud.com/NFTApi/rest/BusinessTokenURI/";
     }
 
     /**
