@@ -22,4 +22,17 @@ contract BusinessToken is DynamicToken, EntityToken {
         return
             "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/BusinessTokenURI/";
     }
+
+    function safeMint(address to, bytes32[] memory attributes) public {
+        _safeMint(to, attributes);
+    }
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(DynamicToken, EntityToken) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 }

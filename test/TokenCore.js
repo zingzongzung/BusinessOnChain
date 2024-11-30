@@ -32,9 +32,9 @@ describe("Dynamic Token contract", function () {
 		const LoyaltyToken = await ethers.getContractFactory("LoyaltyToken");
 		const loyaltyToken = await LoyaltyToken.deploy(owner.address, owner.address);
 
-		await loyaltyToken.safeMint(owner.address, [stringToBytes32("Name")]);
-
 		await businessToken.addService(0, loyaltyToken.target);
+
+		await loyaltyToken.safeMint(owner.address, [stringToBytes32("Name")], 0, businessToken.target);
 	});
 });
 

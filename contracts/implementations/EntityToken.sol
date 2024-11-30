@@ -2,10 +2,11 @@
 pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IServiceToken} from "./../interfaces/IServiceToken.sol";
 import {IEntityToken} from "./../interfaces/IEntityToken.sol";
 
-abstract contract EntityToken is IEntityToken {
+abstract contract EntityToken is IEntityToken, ERC165 {
     using ERC165Checker for address;
 
     error NotAServiceTokenAddress();
@@ -28,6 +29,13 @@ abstract contract EntityToken is IEntityToken {
         tokenRegisteredServices[tokenId].push(serviceAddress);
     }
 
+    function hasService(
+        uint tokenId,
+        address serviceAddress
+    ) external view returns (bool) {
+        return isAddressPresent(tokenId, serviceAddress);
+    }
+
     function isAddressPresent(
         uint256 key,
         address addr
@@ -39,5 +47,13 @@ abstract contract EntityToken is IEntityToken {
             }
         }
         return false;
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165, IERC165) returns (bool) {
+        return
+            interfaceId == type(IEntityToken).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }

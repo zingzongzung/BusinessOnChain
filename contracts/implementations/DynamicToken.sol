@@ -94,10 +94,7 @@ abstract contract DynamicToken is
         return super.tokenURI(tokenId);
     }
 
-    function safeMint(
-        address to,
-        bytes32[] memory attributes
-    ) public onlyRole(MINTER_ROLE) {
+    function _safeMint(address to, bytes32[] memory attributes) internal {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         _setTokenAttributes(tokenId, attributes);

@@ -23,6 +23,15 @@ contract LoyaltyToken is DynamicToken, ServiceToken {
             "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/LoyaltyTokenURI/";
     }
 
+    function safeMint(
+        address to,
+        bytes32[] memory attributes,
+        uint nodeFatherId,
+        address nodeFatherAddress
+    ) public canMint(nodeFatherId, nodeFatherAddress) {
+        _safeMint(to, attributes);
+    }
+
     /**
      * @dev See {IERC165-supportsInterface}.
      */
