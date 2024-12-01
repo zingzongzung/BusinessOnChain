@@ -12,6 +12,7 @@ describe("Dynamic Token contract", function () {
 		expect(await businessToken.totalSupply()).to.equal(ownerBalance);
 
 		await businessToken.safeMint(owner.address, [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+		console.log(await businessToken.tokenURI(0));
 
 		await printTokenAttrs(businessToken, 0);
 	});

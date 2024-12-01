@@ -1,3 +1,6 @@
 {
-  "LoyaltyTokenModule#LoyaltyToken": "0x001A9Eb46D889FCC1Cf486F73fC42Ab840e0c665"
+  "LoyaltyTokenManagerModule#LoyaltyTokenManager": "0xe42B7eD4b235a433DE4E6e090BBc763624DDA934",
+  "LoyaltyTokenModule#LoyaltyToken": "0xE486369700efcF74A783620Af51f5d1A04328678",
+  "BusinessTokenManagerModule#BusinessTokenManager": "0x88333B07340FBee36566CFFA9Ffcf4E8BE82F677",
+  "BusinessTokenModule#BusinessToken": "0x0874953dcE9F5f4815e37Dbc982155bd4eBEefEB"
 }
