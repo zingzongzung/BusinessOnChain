@@ -92,6 +92,7 @@ abstract contract DynamicToken is
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         initTraits(tokenId, attributeValues);
+        tokenURIVersion[tokenId] = 0;
         _updateTokenURI(tokenId);
     }
 

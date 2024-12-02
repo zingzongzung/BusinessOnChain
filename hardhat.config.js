@@ -19,6 +19,7 @@ const ALCHEMY_API_KEY = vars.get("ALCHEMY_API_KEY");
 const SHAPE_PK = vars.get("SHAPE_PK");
 
 const SHAPE_TESTNET_RPC_URL = "	https://sepolia.shape.network";
+const SEPOLIA_TESTNET_RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/YWRrEeoZngHzfL8jQ5uCynXhT5yCKTHb";
 
 module.exports = {
 	solidity: "0.8.27",
@@ -26,6 +27,11 @@ module.exports = {
 		shape: {
 			url: SHAPE_TESTNET_RPC_URL, // Shape Testnet RPC URL
 			chainId: 11011, // Shape Testnet Network ID
+			accounts: [SHAPE_PK],
+		},
+		sepolia: {
+			url: SEPOLIA_TESTNET_RPC_URL, // Shape Testnet RPC URL
+			chainId: 11155111, // Shape Testnet Network ID
 			accounts: [SHAPE_PK],
 		},
 	},

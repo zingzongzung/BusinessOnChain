@@ -10,7 +10,7 @@ describe("Dynamic Token contract", function () {
 
 		const ownerBalance = await businessToken.balanceOf(owner.address);
 		expect(await businessToken.totalSupply()).to.equal(ownerBalance);
-
+		console.log(stringToBytes32("A Shop"));
 		await businessToken.safeMint(owner.address, [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 		console.log(await businessToken.tokenURI(0));
 

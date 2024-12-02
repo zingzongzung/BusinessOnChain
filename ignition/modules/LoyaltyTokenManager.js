@@ -3,8 +3,7 @@ const loyaltyTokenModule = require("./LoyaltyToken.js");
 
 const LoyaltyTokenManagerModule = buildModule("LoyaltyTokenManagerModule", (m) => {
 	const { loyaltyToken } = m.useModule(loyaltyTokenModule);
-	const account1 = m.getAccount(0);
-	const loyaltyTokenManager = m.contract("LoyaltyTokenManager", [account1]);
+	const loyaltyTokenManager = m.contract("LoyaltyTokenManager", [loyaltyToken]);
 
 	m.call(loyaltyToken, "grantMintRole", [loyaltyTokenManager]);
 

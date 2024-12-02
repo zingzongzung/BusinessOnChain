@@ -100,7 +100,7 @@ const setSmartContract = (contractName) => {
 };
 
 const getContractAddress = (contractName) => {
-	const source = JSON.parse(fs.readFileSync(path.resolve(__dirname, "./../../ignition/deployments/chain-11011/deployed_addresses.json")).toString());
+	const source = JSON.parse(fs.readFileSync(path.resolve(__dirname, "./../../ignition/deployments/chain-" + chainId + "/deployed_addresses.json")).toString());
 	const addresses = {};
 	Object.keys(source).forEach((key) => {
 		const newKey = key.split("#")[1];
@@ -122,8 +122,11 @@ const commands = {
 	},
 };
 
+let chainId = "";
+
 const main = () => {
 	const baseParam = process.argv.length > 2 ? process.argv[2] : commands.help.name;
+	chainId = process.argv.length > 3 ? process.argv[3] : "11155111";
 	const param = baseParam.replace("--", "");
 
 	if (param === commands.all.name) {
