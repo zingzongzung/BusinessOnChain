@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IProviderToken} from "./../interfaces/IProviderToken.sol";
 import {IServiceToken} from "./../interfaces/IServiceToken.sol";
-import {DynamicToken} from "./DynamicToken.sol";
+import {DynamicToken} from "./../abstract/DynamicToken.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-abstract contract ProviderToken is IProviderToken, ERC165 {
+abstract contract ProviderToken is IProviderToken, ERC165, DynamicToken {
     error ServiceTokenAlreadyRegistered();
     error NotAServiceTokenAddress();
     error TokenNotOwned();
@@ -19,6 +19,12 @@ abstract contract ProviderToken is IProviderToken, ERC165 {
         type(IServiceToken).interfaceId;
 
     mapping(uint => address[]) tokenRegisteredServices;
+
+    constructor(
+        address defaultAdmin,
+        string memory name,
+        string memory symbol
+    ) DynamicToken(defaultAdmin, name, symbol) {}
 
     function addService(uint tokenId, address serviceAddress) external {
         if (!serviceAddress.supportsInterface(SERVICE_INTERFACE_ID)) {
@@ -59,7 +65,13 @@ abstract contract ProviderToken is IProviderToken, ERC165 {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC165, IERC165) returns (bool) {
+    )
+        public
+        view
+        virtual
+        override(ERC165, IERC165, DynamicToken)
+        returns (bool)
+    {
         return
             interfaceId == type(IProviderToken).interfaceId ||
             super.supportsInterface(interfaceId);

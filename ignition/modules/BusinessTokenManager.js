@@ -5,12 +5,20 @@ const BusinessTokenManagerModule = buildModule("BusinessTokenManagerModule", (m)
 	const { businessToken } = m.useModule(businessTokenModule);
 	const businessTokenManager = m.contract("BusinessTokenManager", [businessToken]);
 
-	m.call(businessToken, "grantMintRole", [businessTokenManager]);
+	const mintRole = m.call(businessToken, "grantMintRole", [businessTokenManager]);
 
-	m.call(businessTokenManager, "safeMint", [
-		"0xCe190cab58c6524b7f8e8541bA9Dd0C683bA4dfE",
-		["0x412053686f700000000000000000000000000000000000000000000000000000", "0x412053686f700000000000000000000000000000000000000000000000000000"],
-	]);
+	m.call(
+		businessTokenManager,
+		"safeMint",
+		[
+			"0xCe190cab58c6524b7f8e8541bA9Dd0C683bA4dfE",
+			"0x427573696e65737350726f76696465722e706e67000000000000000000000000",
+			["0x412053686f700000000000000000000000000000000000000000000000000000", "0x412053686f700000000000000000000000000000000000000000000000000000"],
+		],
+		{
+			after: [mintRole],
+		}
+	);
 
 	return { businessTokenManager };
 });

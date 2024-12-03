@@ -16,30 +16,40 @@ abstract contract ServiceTokenManager {
         address addressId;
     }
 
-    error NotAnEntityTokenAddress();
+    error NotAProviderToken();
     error ServiceNotAddedToThisEntity();
     error TokenNotOwned();
     error RelationPermissionNotPresent(uint);
 
+    address serviceTokenAddress;
     mapping(uint => Token) tokenRelations;
 
-    bytes4 public constant ENTITY_INTERFACE_ID =
+    bytes4 public constant PROVIDER_TOKEN_INTEFACE_ID =
         type(IProviderToken).interfaceId;
-
-    address serviceTokenAddress;
 
     constructor(address _serviceTokenAddress) {
         serviceTokenAddress = _serviceTokenAddress;
     }
 
+    function setTrait(
+        uint256 tokenId,
+        bytes32 traitKey,
+        bytes32 newValue
+    ) internal {
+        IDynamicToken serviceToken = IDynamicToken(serviceTokenAddress);
+        serviceToken.setTrait(tokenId, traitKey, newValue);
+    }
+
     function safeMint(
         address to,
+        bytes32 _imageId,
         bytes32[] memory attributes,
         uint nodeFatherId,
         address nodeFatherAddress
-    ) public verifyCreatePermission(nodeFatherId, nodeFatherAddress) {
-        IDynamicToken dynamicToken = IDynamicToken(serviceTokenAddress);
-        dynamicToken.safeMint(to, attributes);
+    ) external verifyCreatePermission(nodeFatherId, nodeFatherAddress) {
+        IDynamicToken serviceToken = IDynamicToken(serviceTokenAddress);
+        uint tokenId = serviceToken.safeMint(to, _imageId, attributes);
+        createRelation(tokenId, nodeFatherId, nodeFatherAddress);
     }
 
     function createRelation(
@@ -64,12 +74,20 @@ abstract contract ServiceTokenManager {
         _;
     }
 
+    modifier tokenOwned(uint tokenId) {
+        IERC721 nftToken = IERC721(serviceTokenAddress);
+        if (nftToken.ownerOf(tokenId) != msg.sender) {
+            revert TokenNotOwned();
+        }
+        _;
+    }
+
     modifier verifyCreatePermission(
         uint tokenFatherId,
         address tokenFatherAddress
     ) {
-        if (!tokenFatherAddress.supportsInterface(ENTITY_INTERFACE_ID)) {
-            revert NotAnEntityTokenAddress();
+        if (!tokenFatherAddress.supportsInterface(PROVIDER_TOKEN_INTEFACE_ID)) {
+            revert NotAProviderToken();
         }
 
         IProviderToken entityToken = IProviderToken(tokenFatherAddress);

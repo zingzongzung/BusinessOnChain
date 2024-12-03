@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {IERC7496} from "./../interfaces/IERC7496.sol";
 import {IDynamicToken} from "./../interfaces/IDynamicToken.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -9,22 +8,11 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-/**
- * @title EntityToken
- *
- * @dev Implementation of [ERC-7496](https://eips.ethereum.org/EIPS/eip-7496) Dynamic Traits.
- * Uses a storage layout pattern for upgradeable contracts.
- *
- * Requirements:
- * - Overwrite `setTrait` with access role restriction.
- * - Expose a function for `setTraitMetadataURI` with access role restriction if desired.
- */
 abstract contract DynamicToken is
     ERC721,
     ERC721Enumerable,
     ERC721URIStorage,
     AccessControl,
-    IERC7496,
     IDynamicToken
 {
     using Strings for uint256;
@@ -32,6 +20,8 @@ abstract contract DynamicToken is
     uint256 private _nextTokenId;
     mapping(uint => uint) tokenURIVersion;
     bytes32[] tokenAttributes;
+
+    mapping(uint => bytes32) tokenImageId;
 
     mapping(uint256 tokenId => mapping(bytes32 traitKey => bytes32 traitValue)) _traits;
 
@@ -79,6 +69,12 @@ abstract contract DynamicToken is
         );
     }
 
+    function _baseImageURI() internal view virtual returns (string memory);
+
+    function imageURI(uint256 tokenId) public view returns (string memory) {
+        return string(abi.encodePacked(_baseImageURI(), tokenImageId[tokenId]));
+    }
+
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
@@ -87,11 +83,13 @@ abstract contract DynamicToken is
 
     function safeMint(
         address to,
+        bytes32 _tokenImageId,
         bytes32[] memory attributeValues
-    ) public onlyRole(MINTER_ROLE) {
-        uint256 tokenId = _nextTokenId++;
+    ) external onlyRole(MINTER_ROLE) returns (uint tokenId) {
+        tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         initTraits(tokenId, attributeValues);
+        tokenImageId[tokenId] = _tokenImageId;
         tokenURIVersion[tokenId] = 0;
         _updateTokenURI(tokenId);
     }
@@ -105,7 +103,7 @@ abstract contract DynamicToken is
         }
 
         for (uint index = 0; index < tokenAttributes.length; index++) {
-            setTrait(tokenId, tokenAttributes[index], attributeValues[index]);
+            _setTrait(tokenId, tokenAttributes[index], attributeValues[index]);
         }
     }
 
@@ -164,34 +162,11 @@ abstract contract DynamicToken is
         }
     }
 
-    /**
-     * @notice Get the URI for the trait metadata
-     */
-    function getTraitMetadataURI()
-        external
-        view
-        virtual
-        returns (string memory labelsURI)
-    {
-        // Return the trait metadata URI.
-        //return DynamicTokenStorage.layout()._traitMetadataURI;
-        return
-            "https://zzo.outsystemscloud.com/IPFSOutsystems/rest/MetadataURI/EntityTokenMetadataURI";
-    }
-
-    /**
-     * @notice Set the value of a trait for a given token ID.
-     *         Reverts if the trait value is unchanged.
-     * @dev    IMPORTANT: Override this method with access role restriction.
-     * @param tokenId The token ID to set the trait value for
-     * @param traitKey The trait key to set the value of
-     * @param newValue The new trait value to set
-     */
     function setTrait(
         uint256 tokenId,
         bytes32 traitKey,
         bytes32 newValue
-    ) public virtual {
+    ) external onlyRole(MINTER_ROLE) {
         // Revert if the new value is the same as the existing value.
         bytes32 existingValue = _traits[tokenId][traitKey];
         if (existingValue == newValue) {
@@ -203,9 +178,6 @@ abstract contract DynamicToken is
 
         //Update the Token URI
         _updateTokenURI(tokenId);
-
-        // Emit the event noting the update.
-        emit TraitUpdated(traitKey, tokenId, newValue);
     }
 
     /**
@@ -224,18 +196,6 @@ abstract contract DynamicToken is
     }
 
     /**
-     * @notice Set the URI for the trait metadata.
-     * @param uri The new URI to set.
-     */
-    function _setTraitMetadataURI(string memory uri) internal virtual {
-        // Set the new trait metadata URI.
-        _traitMetadataURI = uri;
-
-        // Emit the event noting the update.
-        emit TraitMetadataURIUpdated();
-    }
-
-    /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(
@@ -247,8 +207,6 @@ abstract contract DynamicToken is
         override(ERC721, ERC721Enumerable, ERC721URIStorage, AccessControl)
         returns (bool)
     {
-        return
-            super.supportsInterface(interfaceId) ||
-            interfaceId == type(IERC7496).interfaceId;
+        return super.supportsInterface(interfaceId);
     }
 }
