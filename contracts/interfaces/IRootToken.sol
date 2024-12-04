@@ -3,11 +3,11 @@ pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-interface IProviderToken is IERC165 {
-    function addService(uint tokenId, address serviceAddress) external;
+interface IRootToken is IERC165 {
+    function addManagedService(uint tokenId, address serviceAddress) external;
 
-    function hasService(
+    function removeManagedService(
         uint tokenId,
         address serviceAddress
-    ) external view returns (bool);
+    ) external;
 }

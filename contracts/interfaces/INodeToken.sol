@@ -4,9 +4,12 @@ pragma solidity ^0.8.27;
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 interface INodeToken is IERC165 {
-    function addService(uint tokenId, address serviceAddress) external;
+    function allowChildNodeManagement(
+        uint tokenId,
+        address serviceAddress
+    ) external;
 
-    function hasService(
+    function isManagingChildNode(
         uint tokenId,
         address serviceAddress
     ) external view returns (bool);

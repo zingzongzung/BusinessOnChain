@@ -6,8 +6,10 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {INodeToken} from "./../interfaces/INodeToken.sol";
 import {DynamicToken} from "./../abstract/DynamicToken.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 abstract contract NodeToken is INodeToken, DynamicToken {
+    using EnumerableSet for EnumerableSet.AddressSet;
     using ERC165Checker for address;
 
     error NotANodeToken();
@@ -25,7 +27,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         address addressId;
     }
 
-    mapping(uint => mapping(address => bool)) tokenRegisteredServices;
+    mapping(uint => EnumerableSet.AddressSet) managedChildNodes;
 
     //mapping of the father node to the given node token id
     mapping(uint => Token) fatherNode;
@@ -77,7 +79,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         onlyFatherNode(tokenId, nodeFatherId, nodeFatherAddress)
         onlyTokenOwned(nodeFatherId, nodeFatherAddress)
     {
-        internalSetTrait(tokenId, traitKey, newValue);
+        setTrait(tokenId, traitKey, newValue);
     }
 
     function setOwnerManagedTrait(
@@ -85,7 +87,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         bytes32 traitKey,
         bytes32 newValue
     ) internal virtual onlyTokenOwned(tokenId, address(this)) {
-        internalSetTrait(tokenId, traitKey, newValue);
+        setTrait(tokenId, traitKey, newValue);
     }
 
     modifier onlyFatherNode(
@@ -121,7 +123,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         }
 
         INodeToken entityToken = INodeToken(tokenFatherAddress);
-        if (!entityToken.hasService(tokenFatherId, address(this))) {
+        if (!entityToken.isManagingChildNode(tokenFatherId, address(this))) {
             revert NodeNotRegisteredOnFather();
         }
 
@@ -133,7 +135,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         _;
     }
 
-    function addService(
+    function allowChildNodeManagement(
         uint tokenId,
         address serviceAddress
     ) external onlyTokenOwned(tokenId, address(this)) {
@@ -145,14 +147,14 @@ abstract contract NodeToken is INodeToken, DynamicToken {
             revert InvalidServiceNode();
         }
 
-        if (hasService(tokenId, serviceAddress)) {
+        if (isManagingChildNode(tokenId, serviceAddress)) {
             revert ServiceTokenAlreadyRegistered();
         }
 
-        tokenRegisteredServices[tokenId][serviceAddress] = true;
+        managedChildNodes[tokenId].add(serviceAddress);
     }
 
-    function removeService(
+    function revokeChildNodeManagement(
         uint tokenId,
         address serviceAddress
     ) external onlyTokenOwned(tokenId, address(this)) {
@@ -164,18 +166,18 @@ abstract contract NodeToken is INodeToken, DynamicToken {
             revert InvalidServiceNode();
         }
 
-        if (!hasService(tokenId, serviceAddress)) {
+        if (!isManagingChildNode(tokenId, serviceAddress)) {
             revert ServiceTokenNotRegistered();
         }
 
-        tokenRegisteredServices[tokenId][serviceAddress] = false;
+        managedChildNodes[tokenId].remove(serviceAddress);
     }
 
-    function hasService(
+    function isManagingChildNode(
         uint tokenId,
         address serviceAddress
     ) public view returns (bool) {
-        return tokenRegisteredServices[tokenId][serviceAddress];
+        return managedChildNodes[tokenId].contains(serviceAddress);
     }
 
     function supportsInterface(

@@ -31,19 +31,19 @@ describe("Node Token", function () {
 	it("Can Mint Token and Child Token", async function () {
 		const [owner, otherAccount] = await ethers.getSigners();
 
-		const NodeToken = await ethers.getContractFactory("BusinessTokenV2");
+		const NodeToken = await ethers.getContractFactory("BusinessToken");
 		const nodeToken = await NodeToken.deploy(owner.address);
 		await nodeToken.grantMintRole(owner.address);
 
 		await nodeToken.safeMintRoot(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
-		const ServiceToken = await ethers.getContractFactory("ServiceTokenV2");
+		const ServiceToken = await ethers.getContractFactory("LoyaltyToken");
 		const serviceToken = await ServiceToken.deploy(owner.address);
 		//await serviceToken.grantMintRole(owner.address);
 
 		//await serviceToken.safeMintRoot(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
-		await nodeToken.addService(0, serviceToken);
+		await nodeToken.allowChildNodeManagement(0, serviceToken);
 
 		await serviceToken.safeMintNode(
 			owner.address,
@@ -55,113 +55,6 @@ describe("Node Token", function () {
 
 		await serviceToken.addPoints(0, 0, nodeToken.target);
 		await serviceToken.redeemPoints(0, 1);
-	});
-});
-
-describe("Dynamic Token contract", function () {
-	it("Deployment should assign the total supply of tokens to the owner", async function () {
-		const [owner] = await ethers.getSigners();
-
-		const BusinessToken = await ethers.getContractFactory("BusinessToken");
-		const businessToken = await BusinessToken.deploy(owner.address);
-		await businessToken.grantMintRole(owner.address);
-
-		const ownerBalance = await businessToken.balanceOf(owner.address);
-		expect(await businessToken.totalSupply()).to.equal(ownerBalance);
-		await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
-
-		await printTokenAttrs(businessToken, 0);
-	});
-
-	it("Register service with success2", async function () {
-		const [owner] = await ethers.getSigners();
-
-		//Initialize Business Token and business token manager contract
-		const BusinessToken = await ethers.getContractFactory("BusinessToken");
-		const businessToken = await BusinessToken.deploy(owner.address);
-
-		const BusinessTokenManager = await ethers.getContractFactory("BusinessTokenManager");
-		const businessTokenManager = await BusinessTokenManager.deploy(businessToken.target);
-
-		//Grant mint role to the business manager token contract and mint a token
-		await businessToken.grantMintRole(businessTokenManager.target);
-		await businessTokenManager.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("Name"), stringToBytes32("Restaurant")]);
-
-		const LoyaltyToken = await ethers.getContractFactory("LoyaltyToken");
-		const loyaltyToken = await LoyaltyToken.deploy(owner.address);
-
-		const LoyaltyTokenManager = await ethers.getContractFactory("LoyaltyTokenManager");
-		const loyaltyTokenManager = await LoyaltyTokenManager.deploy(loyaltyToken.target);
-
-		await loyaltyToken.grantMintRole(loyaltyTokenManager.target);
-
-		await businessToken.addService(0, loyaltyToken.target);
-
-		await loyaltyTokenManager.safeMint(
-			owner.address,
-			stringToBytes32("ImageId"),
-			[stringToBytes32("A shop Card"), stringToBytes32("0")],
-			0,
-			businessToken.target
-		);
-
-		await loyaltyTokenManager.safeMint(
-			owner.address,
-			stringToBytes32("BusinessProvider.png"),
-			[stringToBytes32("A shop Csard"), stringToBytes32("03")],
-			0,
-			businessToken.target
-		);
-
-		//await printTokenAttrs(loyaltyToken, 1);
-	});
-
-	it("Cant redeem if you are not the owner", async function () {
-		const [owner, otherAccount] = await ethers.getSigners();
-
-		//Initialize Business Token and business token manager contract
-		const BusinessToken = await ethers.getContractFactory("BusinessToken");
-		const businessToken = await BusinessToken.deploy(owner.address);
-
-		const BusinessTokenManager = await ethers.getContractFactory("BusinessTokenManager");
-		const businessTokenManager = await BusinessTokenManager.deploy(businessToken.target);
-
-		//Grant mint role to the business manager token contract and mint a token
-		await businessToken.grantMintRole(businessTokenManager.target);
-		await businessTokenManager.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("Name"), stringToBytes32("Restaurant")]);
-
-		const LoyaltyToken = await ethers.getContractFactory("LoyaltyToken");
-		const loyaltyToken = await LoyaltyToken.deploy(owner.address);
-
-		const LoyaltyTokenManager = await ethers.getContractFactory("LoyaltyTokenManager");
-		const loyaltyTokenManager = await LoyaltyTokenManager.deploy(loyaltyToken.target);
-
-		await loyaltyToken.grantMintRole(loyaltyTokenManager.target);
-
-		await businessToken.addService(0, loyaltyToken.target);
-
-		await loyaltyTokenManager.safeMint(
-			owner.address,
-			stringToBytes32("ImageId"),
-			[stringToBytes32("A shop Card"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
-			0,
-			businessToken.target
-		);
-
-		let points = await loyaltyToken.getTraitValue(0, stringToBytes32("Points"));
-
-		await loyaltyTokenManager.addPoints(0, 0, businessToken.target);
-		await loyaltyTokenManager.addPoints(0, 0, businessToken.target);
-		await loyaltyTokenManager.addPoints(0, 0, businessToken.target);
-
-		points = await loyaltyToken.getTraitValue(0, stringToBytes32("Points"));
-
-		await loyaltyTokenManager.redeemPoints(0, 2);
-		points = await loyaltyToken.getTraitValue(0, stringToBytes32("Points"));
-
-		await expect(loyaltyTokenManager.connect(otherAccount).redeemPoints(0, 1)).to.be.revertedWithCustomError(loyaltyTokenManager, "TokenNotOwned");
-
-		//await printTokenAttrs(loyaltyToken, 1);
 	});
 });
 

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {ProviderToken} from "./../implementations/ProviderToken.sol";
+import {RootToken} from "./../implementations/RootToken.sol";
 
-contract BusinessToken is ProviderToken {
+contract BusinessToken is RootToken {
     constructor(
         address defaultAdmin
-    ) ProviderToken(defaultAdmin, "BusinessToken", "BTK") {
+    ) RootToken(defaultAdmin, "BusinessToken", "BTK") {
         bytes32[] memory attributes = new bytes32[](2);
         attributes[0] = bytes32(abi.encodePacked("Name"));
         attributes[1] = bytes32(abi.encodePacked("Sector"));
@@ -27,11 +27,5 @@ contract BusinessToken is ProviderToken {
     {
         return
             "https://personal-ixqe4210.outsystemscloud.com/BusinessOnChain_API/images/";
-    }
-
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(ProviderToken) returns (bool) {
-        return super.supportsInterface(interfaceId);
     }
 }

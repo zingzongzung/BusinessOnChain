@@ -175,14 +175,6 @@ abstract contract DynamicToken is
         uint256 tokenId,
         bytes32 traitKey,
         bytes32 newValue
-    ) external virtual onlyRole(MINTER_ROLE) {
-        internalSetTrait(tokenId, traitKey, newValue);
-    }
-
-    function internalSetTrait(
-        uint256 tokenId,
-        bytes32 traitKey,
-        bytes32 newValue
     ) internal virtual {
         // Revert if the new value is the same as the existing value.
         bytes32 existingValue = _traits[tokenId][traitKey];
