@@ -17,6 +17,7 @@ abstract contract DynamicToken is
 {
     using Strings for uint256;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     uint256 private _nextTokenId;
     mapping(uint => uint) tokenURIVersion;
     bytes32[] tokenAttributes;
@@ -195,9 +196,6 @@ abstract contract DynamicToken is
         _traits[tokenId][traitKey] = newValue;
     }
 
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
     function supportsInterface(
         bytes4 interfaceId
     )

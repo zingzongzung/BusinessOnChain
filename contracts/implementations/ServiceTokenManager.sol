@@ -46,7 +46,7 @@ abstract contract ServiceTokenManager {
         bytes32[] memory attributes,
         uint nodeFatherId,
         address nodeFatherAddress
-    ) external verifyCreatePermission(nodeFatherId, nodeFatherAddress) {
+    ) external onlyFatherToken(nodeFatherId, nodeFatherAddress) {
         IDynamicToken serviceToken = IDynamicToken(serviceTokenAddress);
         uint tokenId = serviceToken.safeMint(to, _imageId, attributes);
         createRelation(tokenId, nodeFatherId, nodeFatherAddress);
@@ -56,7 +56,7 @@ abstract contract ServiceTokenManager {
         uint tokenId,
         uint tokenFatherId,
         address tokenFatherAddress
-    ) internal verifyCreatePermission(tokenFatherId, tokenFatherAddress) {
+    ) internal onlyFatherToken(tokenFatherId, tokenFatherAddress) {
         tokenRelations[tokenId] = Token(tokenFatherId, tokenFatherAddress);
     }
 
@@ -82,10 +82,7 @@ abstract contract ServiceTokenManager {
         _;
     }
 
-    modifier verifyCreatePermission(
-        uint tokenFatherId,
-        address tokenFatherAddress
-    ) {
+    modifier onlyFatherToken(uint tokenFatherId, address tokenFatherAddress) {
         if (!tokenFatherAddress.supportsInterface(PROVIDER_TOKEN_INTEFACE_ID)) {
             revert NotAProviderToken();
         }

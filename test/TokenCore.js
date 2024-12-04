@@ -1,6 +1,32 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
+describe("Stake Service contract", function () {
+	it("Can Stake asset", async function () {
+		const [owner] = await ethers.getSigners();
+
+		const BusinessToken = await ethers.getContractFactory("BusinessToken");
+		const businessToken = await BusinessToken.deploy(owner.address);
+		await businessToken.grantMintRole(owner.address);
+
+		await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+		const StakingService = await ethers.getContractFactory("StakingService");
+		const stakingService = await StakingService.deploy();
+
+		await businessToken.approve(stakingService, 0);
+		await stakingService.stakeNFT(businessToken, 0);
+
+		const stakingAccountBalance = await businessToken.balanceOf(stakingService);
+		expect(await businessToken.totalSupply()).to.equal(stakingAccountBalance);
+
+		await stakingService.unStakeNFT(businessToken, 0);
+
+		const ownerBalance = await businessToken.balanceOf(owner);
+		expect(await businessToken.totalSupply()).to.equal(ownerBalance);
+	});
+});
+
 describe("Dynamic Token contract", function () {
 	it("Deployment should assign the total supply of tokens to the owner", async function () {
 		const [owner] = await ethers.getSigners();
@@ -16,7 +42,7 @@ describe("Dynamic Token contract", function () {
 		await printTokenAttrs(businessToken, 0);
 	});
 
-	it("Register service with success", async function () {
+	it("Register service with success2", async function () {
 		const [owner] = await ethers.getSigners();
 
 		//Initialize Business Token and business token manager contract
@@ -59,7 +85,7 @@ describe("Dynamic Token contract", function () {
 		//await printTokenAttrs(loyaltyToken, 1);
 	});
 
-	it("Register service with success", async function () {
+	it("Cant redeem if you are not the owner", async function () {
 		const [owner, otherAccount] = await ethers.getSigners();
 
 		//Initialize Business Token and business token manager contract
@@ -92,20 +118,17 @@ describe("Dynamic Token contract", function () {
 		);
 
 		let points = await loyaltyToken.getTraitValue(0, stringToBytes32("Points"));
-		console.log(points);
 
 		await loyaltyTokenManager.addPoints(0, 0, businessToken.target);
 		await loyaltyTokenManager.addPoints(0, 0, businessToken.target);
 		await loyaltyTokenManager.addPoints(0, 0, businessToken.target);
 
 		points = await loyaltyToken.getTraitValue(0, stringToBytes32("Points"));
-		console.log(points);
 
 		await loyaltyTokenManager.redeemPoints(0, 2);
 		points = await loyaltyToken.getTraitValue(0, stringToBytes32("Points"));
-		console.log(points);
 
-		await loyaltyTokenManager.connect(otherAccount).redeemPoints(0, 1);
+		await expect(loyaltyTokenManager.connect(otherAccount).redeemPoints(0, 1)).to.be.revertedWithCustomError(loyaltyTokenManager, "TokenNotOwned");
 
 		//await printTokenAttrs(loyaltyToken, 1);
 	});
