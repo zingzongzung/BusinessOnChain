@@ -27,6 +27,37 @@ describe("Stake Service contract", function () {
 	});
 });
 
+describe("Node Token", function () {
+	it("Can Mint Token and Child Token", async function () {
+		const [owner, otherAccount] = await ethers.getSigners();
+
+		const NodeToken = await ethers.getContractFactory("BusinessTokenV2");
+		const nodeToken = await NodeToken.deploy(owner.address);
+		await nodeToken.grantMintRole(owner.address);
+
+		await nodeToken.safeMintRoot(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+		const ServiceToken = await ethers.getContractFactory("ServiceTokenV2");
+		const serviceToken = await ServiceToken.deploy(owner.address);
+		//await serviceToken.grantMintRole(owner.address);
+
+		//await serviceToken.safeMintRoot(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+		await nodeToken.addService(0, serviceToken);
+
+		await serviceToken.safeMintNode(
+			owner.address,
+			stringToBytes32("ImageId"),
+			[stringToBytes32("A Shop"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
+			0,
+			nodeToken
+		);
+
+		await serviceToken.addPoints(0, 0, nodeToken.target);
+		await serviceToken.redeemPoints(0, 1);
+	});
+});
+
 describe("Dynamic Token contract", function () {
 	it("Deployment should assign the total supply of tokens to the owner", async function () {
 		const [owner] = await ethers.getSigners();

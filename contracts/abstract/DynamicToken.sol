@@ -87,6 +87,14 @@ abstract contract DynamicToken is
         bytes32 _tokenImageId,
         bytes32[] memory attributeValues
     ) external onlyRole(MINTER_ROLE) returns (uint tokenId) {
+        return internalSafeMint(to, _tokenImageId, attributeValues);
+    }
+
+    function internalSafeMint(
+        address to,
+        bytes32 _tokenImageId,
+        bytes32[] memory attributeValues
+    ) internal returns (uint tokenId) {
         tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         initTraits(tokenId, attributeValues);
@@ -167,7 +175,15 @@ abstract contract DynamicToken is
         uint256 tokenId,
         bytes32 traitKey,
         bytes32 newValue
-    ) external onlyRole(MINTER_ROLE) {
+    ) external virtual onlyRole(MINTER_ROLE) {
+        internalSetTrait(tokenId, traitKey, newValue);
+    }
+
+    function internalSetTrait(
+        uint256 tokenId,
+        bytes32 traitKey,
+        bytes32 newValue
+    ) internal virtual {
         // Revert if the new value is the same as the existing value.
         bytes32 existingValue = _traits[tokenId][traitKey];
         if (existingValue == newValue) {
