@@ -13,7 +13,7 @@ contract ServiceTokenV2 is NodeToken {
         bytes32[] memory attributes = new bytes32[](2);
         attributes[0] = LoyaltyTokenAttributes.NAME_ATTR;
         attributes[1] = LoyaltyTokenAttributes.POINTS_ATTR;
-        _setTokenAttributes(attributes);
+        _setTokenAttributes(attributes);asdf
     }
 
     function addPoints(
