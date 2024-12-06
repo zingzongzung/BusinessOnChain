@@ -10,4 +10,8 @@ interface IRootToken is IERC165 {
         uint tokenId,
         address serviceAddress
     ) external;
+
+    function getServiceAddressByTokenAddress(
+        address tokenAddress
+    ) external returns (address serviceAddress);
 }

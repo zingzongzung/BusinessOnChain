@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
+import {IRootToken} from "./../interfaces/IRootToken.sol";
+import {LoyaltyService} from "./LoyaltyService.sol";
 import {ChildToken} from "./../implementations/ChildToken.sol";
 import {LoyaltyTokenAttributes} from "./../libraries/LoyaltyTokenAttributes.sol";
 
@@ -19,28 +21,23 @@ contract LoyaltyToken is ChildToken {
     function addPoints(
         uint tokenId,
         uint rootTokenId,
-        address rootFatherAddress
+        address fatherAddress
     ) external {
         uint currentPoints = uint(
             getTraitValue(tokenId, LoyaltyTokenAttributes.POINTS_ATTR)
         );
 
-        ChildToken ss = ChildToken(rootFatherAddress);
-
-        (bool success, ) = rootFatherAddress.call(
-            abi.encodeWithSignature(
-                "getPointsMultiplier(address,uint256)",
-                ss,
-                tokenId
-            )
+        IRootToken fatherToken = IRootToken(fatherAddress);
+        LoyaltyService loyaltyService = LoyaltyService(
+            fatherToken.getServiceAddressByTokenAddress(address(this))
         );
-
+        uint extraPoints = loyaltyService.getLoyaltyTokenMultiplier(msg.sender);
         super.setFatherManagedTrait(
             tokenId,
             LoyaltyTokenAttributes.POINTS_ATTR,
-            bytes32(currentPoints + 1),
+            bytes32(currentPoints + 1 + extraPoints),
             rootTokenId,
-            rootFatherAddress
+            fatherAddress
         );
     }
 

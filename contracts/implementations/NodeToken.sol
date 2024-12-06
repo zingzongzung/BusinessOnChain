@@ -138,7 +138,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
     function allowChildNodeManagement(
         uint tokenId,
         address serviceAddress
-    ) external onlyTokenOwned(tokenId, address(this)) {
+    ) internal onlyTokenOwned(tokenId, address(this)) {
         if (!serviceAddress.supportsInterface(I_NODE_TOKEN_INTERFACE_ID)) {
             revert NotANodeToken();
         }
@@ -157,7 +157,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
     function revokeChildNodeManagement(
         uint tokenId,
         address serviceAddress
-    ) external onlyTokenOwned(tokenId, address(this)) {
+    ) internal onlyTokenOwned(tokenId, address(this)) {
         if (!serviceAddress.supportsInterface(I_NODE_TOKEN_INTERFACE_ID)) {
             revert NotANodeToken();
         }
