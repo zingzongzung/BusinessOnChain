@@ -17,6 +17,15 @@ abstract contract RootToken is IRootToken, NodeToken {
         string memory symbol
     ) NodeToken(defaultAdmin, name, symbol, true) {}
 
+    function safeMint(
+        address to,
+        bytes32 _tokenImageId,
+        bytes32[] memory attributeValues
+    ) external virtual onlyRole(MINTER_ROLE) {
+        require(isRootNodeToken, "This token can't be minted as root level ");
+        internalSafeMint(to, _tokenImageId, attributeValues);
+    }
+
     function addManagedService(
         uint tokenId,
         address serviceAddress

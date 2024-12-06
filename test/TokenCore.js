@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-const { stringToBytes32, bytes32ToString, printTokenAttrs } = require("./TestUtils");
+const { stringToBytes32, printTokenAttrs } = require("./TestUtils");
 
 describe("BusinessChain Contracts", function () {
 	async function deployContractsFixture() {
@@ -10,7 +10,6 @@ describe("BusinessChain Contracts", function () {
 		const BusinessToken = await ethers.getContractFactory("BusinessToken");
 		const businessToken = await BusinessToken.deploy(owner.address);
 		await businessToken.grantMintRole(owner.address);
-		await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
 		const LoyaltyToken = await ethers.getContractFactory("LoyaltyToken");
 		const loyaltyToken = await LoyaltyToken.deploy(owner.address);
@@ -28,6 +27,8 @@ describe("BusinessChain Contracts", function () {
 			const StakingService = await ethers.getContractFactory("StakingService");
 			const stakingService = await StakingService.deploy();
 
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
 			await businessToken.approve(stakingService, 0);
 			await stakingService.stakeNFT(businessToken, 0);
 
@@ -42,8 +43,67 @@ describe("BusinessChain Contracts", function () {
 	});
 
 	describe("Node Token", function () {
-		it("Can Mint Token and Child Token", async function () {
+		it("Can Mint Root Token", async function () {
+			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+			const ownerBalance = await businessToken.balanceOf(owner);
+			expect(await businessToken.totalSupply()).to.equal(ownerBalance);
+		});
+
+		it("Can Add Service to Root Token", async function () {
+			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+			await businessToken.addManagedService(0, loyaltyService);
+		});
+
+		it("Can Mint Child token to other Account", async function () {
+			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+			await businessToken.addManagedService(0, loyaltyService);
+
+			await loyaltyToken.safeMint(
+				otherAccount.address,
+				stringToBytes32("ImageId"),
+				[stringToBytes32("A Shop"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
+				0,
+				businessToken
+			);
+
+			const otherAccountBalance = await loyaltyToken.balanceOf(otherAccount);
+			expect(await loyaltyToken.totalSupply()).to.equal(otherAccountBalance);
+		});
+
+		it("Can Add Points with no multiplier", async function () {
 			const { owner, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+			await businessToken.addManagedService(0, loyaltyService);
+			await loyaltyToken.safeMint(
+				owner.address,
+				stringToBytes32("ImageId"),
+				[stringToBytes32("A Shop"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
+				0,
+				businessToken
+			);
+
+			await loyaltyToken.addPoints(0, 0, businessToken.target);
+
+			expect(await loyaltyToken.getTraitValue(0, "0x506f696e74730000000000000000000000000000000000000000000000000000")).to.equal(
+				"0x0000000000000000000000000000000000000000000000000000000000000001"
+			);
+
+			await loyaltyToken.redeemPoints(0, 1);
+		});
+
+		it("Can Add Points with multiplier 3", async function () {
+			const { owner, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
 			const ShapeCraftKey = await ethers.getContractFactory("ShapeCraftKey");
 			const shapeCraftKey = await ShapeCraftKey.deploy(owner.address);
@@ -56,7 +116,7 @@ describe("BusinessChain Contracts", function () {
 			await loyaltyService.addCollection(shapeCraftKey);
 
 			await businessToken.addManagedService(0, loyaltyService);
-			await loyaltyToken.safeMintNode(
+			await loyaltyToken.safeMint(
 				owner.address,
 				stringToBytes32("ImageId"),
 				[stringToBytes32("A Shop"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
@@ -65,11 +125,10 @@ describe("BusinessChain Contracts", function () {
 			);
 
 			await loyaltyToken.addPoints(0, 0, businessToken.target);
-			const points = await loyaltyToken.getTraitValue(0, "0x506f696e74730000000000000000000000000000000000000000000000000000");
-			//console.log(points);
-			await printTokenAttrs(loyaltyToken, 0);
 
-			await loyaltyToken.redeemPoints(0, 1);
+			expect(await loyaltyToken.getTraitValue(0, "0x506f696e74730000000000000000000000000000000000000000000000000000")).to.equal(
+				"0x0000000000000000000000000000000000000000000000000000000000000004"
+			);
 		});
 	});
 });

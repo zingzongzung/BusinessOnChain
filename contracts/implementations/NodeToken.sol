@@ -44,30 +44,6 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         isRootNodeToken = _isRootNodeToken;
     }
 
-    function safeMintRoot(
-        address to,
-        bytes32 _tokenImageId,
-        bytes32[] memory attributeValues
-    ) external virtual onlyRole(MINTER_ROLE) {
-        require(isRootNodeToken, "This token can't be minted as root level ");
-        internalSafeMint(to, _tokenImageId, attributeValues);
-    }
-
-    function safeMintNode(
-        address to,
-        bytes32 _imageId,
-        bytes32[] memory attributes,
-        uint nodeFatherId,
-        address nodeFatherAddress
-    )
-        external
-        virtual
-        onlyRegisteredFatherNode(nodeFatherId, nodeFatherAddress)
-    {
-        uint tokenId = internalSafeMint(to, _imageId, attributes);
-        fatherNode[tokenId] = Token(nodeFatherId, nodeFatherAddress);
-    }
-
     function setFatherManagedTrait(
         uint256 tokenId,
         bytes32 traitKey,
