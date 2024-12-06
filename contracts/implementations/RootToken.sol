@@ -60,7 +60,7 @@ abstract contract RootToken is IRootToken, NodeToken {
 
     function getServiceAddressByTokenAddress(
         address tokenAddress
-    ) external returns (address serviceAddress) {
+    ) external view returns (address serviceAddress) {
         serviceAddress = serviceAddressByTokenAddress[tokenAddress];
     }
 }

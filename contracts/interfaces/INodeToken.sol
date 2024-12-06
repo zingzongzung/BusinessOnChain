@@ -6,6 +6,6 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 interface INodeToken is IERC165 {
     function isManagingChildNode(
         uint tokenId,
-        address serviceAddress
+        address nodeTokenAddress
     ) external view returns (bool);
 }

@@ -137,47 +137,47 @@ abstract contract NodeToken is INodeToken, DynamicToken {
 
     function allowChildNodeManagement(
         uint tokenId,
-        address serviceAddress
+        address nodeTokenAddress
     ) internal onlyTokenOwned(tokenId, address(this)) {
-        if (!serviceAddress.supportsInterface(I_NODE_TOKEN_INTERFACE_ID)) {
+        if (!nodeTokenAddress.supportsInterface(I_NODE_TOKEN_INTERFACE_ID)) {
             revert NotANodeToken();
         }
 
-        if (serviceAddress == address(this)) {
+        if (nodeTokenAddress == address(this)) {
             revert InvalidServiceNode();
         }
 
-        if (isManagingChildNode(tokenId, serviceAddress)) {
+        if (isManagingChildNode(tokenId, nodeTokenAddress)) {
             revert ServiceTokenAlreadyRegistered();
         }
 
-        managedChildNodes[tokenId].add(serviceAddress);
+        managedChildNodes[tokenId].add(nodeTokenAddress);
     }
 
     function revokeChildNodeManagement(
         uint tokenId,
-        address serviceAddress
+        address nodeTokenAddress
     ) internal onlyTokenOwned(tokenId, address(this)) {
-        if (!serviceAddress.supportsInterface(I_NODE_TOKEN_INTERFACE_ID)) {
+        if (!nodeTokenAddress.supportsInterface(I_NODE_TOKEN_INTERFACE_ID)) {
             revert NotANodeToken();
         }
 
-        if (serviceAddress == address(this)) {
+        if (nodeTokenAddress == address(this)) {
             revert InvalidServiceNode();
         }
 
-        if (!isManagingChildNode(tokenId, serviceAddress)) {
+        if (!isManagingChildNode(tokenId, nodeTokenAddress)) {
             revert ServiceTokenNotRegistered();
         }
 
-        managedChildNodes[tokenId].remove(serviceAddress);
+        managedChildNodes[tokenId].remove(nodeTokenAddress);
     }
 
     function isManagingChildNode(
         uint tokenId,
-        address serviceAddress
+        address nodeTokenAddress
     ) public view returns (bool) {
-        return managedChildNodes[tokenId].contains(serviceAddress);
+        return managedChildNodes[tokenId].contains(nodeTokenAddress);
     }
 
     function supportsInterface(

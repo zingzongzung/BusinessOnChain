@@ -17,6 +17,10 @@ contract LoyaltyService is INodeService {
         _loyaltyTokenAddress = loyaltyToken;
     }
 
+    function addCollection(address tokenCollection) external {
+        registeredCollections.push(tokenCollection);
+    }
+
     function getNodeTokenAddress()
         external
         view
@@ -43,7 +47,7 @@ contract LoyaltyService is INodeService {
     ) internal view returns (uint multiplier) {
         IERC721 nftCollection = IERC721(nftAddress);
         uint nftcollectionBalance = nftCollection.balanceOf(loyaltyTokenOwner);
-        multiplier = nftcollectionBalance < 10 ? 1 : nftcollectionBalance < 50
+        multiplier = nftcollectionBalance <= 3 ? 1 : nftcollectionBalance <= 10
             ? 2
             : 3;
     }
