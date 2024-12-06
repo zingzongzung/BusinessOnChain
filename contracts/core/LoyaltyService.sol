@@ -13,6 +13,15 @@ contract LoyaltyService is INodeService {
 
     address[] private registeredCollections;
 
+    struct LoyaltyPrize {
+        //Use a set here instead
+        uint id;
+        bytes32 prizeName;
+        uint points;
+    }
+
+    mapping(address => mapping(uint => LoyaltyPrize[])) asf;
+
     constructor(address loyaltyToken) {
         _loyaltyTokenAddress = loyaltyToken;
     }
