@@ -8,17 +8,29 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import {GelatoVRFConsumerBase} from "./../gelato_vrf/GelatoVRFConsumerBase.sol";
 
-contract PartnerNFTService is IERC721Receiver {
+contract PartnerNFTService is IERC721Receiver, GelatoVRFConsumerBase {
     using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     //errors
     error NotAllowedToTransferPartnerNFT(uint, address, address);
 
     //Data that holds information about partner nfts holded on this contract
     mapping(address => mapping(uint => EnumerableSet.AddressSet)) businessTokenPartnerNFTS;
-    mapping(address => mapping(address => mapping(uint => uint[]))) partnerNfts;
+    mapping(address => mapping(address => mapping(uint => EnumerableSet.UintSet))) partnerNfts;
 
+    //VRF
+    address private vrfOperatorAddress;
+    struct VRFPartnerNFTRequest {
+        address partnerNftAddress;
+        address businessTokenAddress;
+        uint businessTokenId;
+        address receiverNFTAddress;
+    }
+
+    //Token Received Events
     event TokenReceived(
         address indexed from,
         uint256 tokenId,
@@ -30,11 +42,16 @@ contract PartnerNFTService is IERC721Receiver {
         uint256[] tokenIds
     );
 
+    constructor(address vrfOperator) {
+        vrfOperatorAddress = vrfOperator;
+    }
+
     function transferPartnerNFT(
         uint businessTokenId,
         address businessTokenAddress,
         address partnerNftAddress,
-        address receiverNFTAddress
+        address receiverNFTAddress,
+        bool useVRF
     ) external {
         IERC721 businessToken = IERC721(businessTokenAddress);
         if (
@@ -51,14 +68,42 @@ contract PartnerNFTService is IERC721Receiver {
                 partnerNftAddress
             );
         }
-        IERC721 partnerNFTContract = IERC721(partnerNftAddress);
-        partnerNFTContract.safeTransferFrom(
-            address(this),
-            receiverNFTAddress,
-            getPartnerNFTTokenId(
+        if (useVRF) {
+            VRFPartnerNFTRequest memory requestData = VRFPartnerNFTRequest(
                 partnerNftAddress,
                 businessTokenAddress,
-                businessTokenId
+                businessTokenId,
+                receiverNFTAddress
+            );
+            requestRandomness(requestData);
+        } else {
+            IERC721 partnerNFTContract = IERC721(partnerNftAddress);
+            partnerNFTContract.safeTransferFrom(
+                address(this),
+                receiverNFTAddress,
+                getPartnerNFTTokenId(
+                    partnerNftAddress,
+                    businessTokenAddress,
+                    businessTokenId,
+                    0 //in this case the element retrieved will always be the first one
+                )
+            );
+        }
+    }
+
+    function _transferPartnerNFT(
+        VRFPartnerNFTRequest memory partnerNFT,
+        uint randomness
+    ) internal {
+        IERC721 partnerNFTContract = IERC721(partnerNFT.partnerNftAddress);
+        partnerNFTContract.safeTransferFrom(
+            address(this),
+            partnerNFT.receiverNFTAddress,
+            getPartnerNFTTokenId(
+                partnerNFT.partnerNftAddress,
+                partnerNFT.businessTokenAddress,
+                partnerNFT.businessTokenId,
+                randomness
             )
         );
     }
@@ -87,12 +132,35 @@ contract PartnerNFTService is IERC721Receiver {
             // Record the token's owner
             partnerNfts[partnerNftAddress][businessTokenAddress][
                 businessTokenId
-            ].push(tokenId);
+            ].add(tokenId);
 
             emit TokenReceived(msg.sender, tokenId, partnerNftAddress);
         }
 
         emit TokensReceived(msg.sender, partnerNftAddress, tokenIds);
+    }
+
+    //Gelato VRF
+    function requestRandomness(
+        VRFPartnerNFTRequest memory requestData
+    ) internal {
+        _requestRandomness(abi.encode(requestData));
+    }
+
+    function _fulfillRandomness(
+        uint256 randomness,
+        uint256,
+        bytes memory extraData
+    ) internal override {
+        VRFPartnerNFTRequest memory partnerNFT = abi.decode(
+            extraData,
+            (VRFPartnerNFTRequest)
+        );
+        _transferPartnerNFT(partnerNFT, randomness);
+    }
+
+    function _operator() internal view virtual override returns (address) {
+        return vrfOperatorAddress;
     }
 
     // Implement IERC721Receiver to accept ERC-721 tokens
@@ -126,17 +194,18 @@ contract PartnerNFTService is IERC721Receiver {
     function getPartnerNFTTokenId(
         address partnerNftAddress,
         address businessTokenAddress,
-        uint businessTokenId
+        uint businessTokenId,
+        uint randomness
     ) internal returns (uint tokenId) {
+        uint maxIndex = partnerNfts[partnerNftAddress][businessTokenAddress][
+            businessTokenId
+        ].length();
+        uint randomIndex = randomness % maxIndex;
         tokenId = partnerNfts[partnerNftAddress][businessTokenAddress][
             businessTokenId
-        ][
-            partnerNfts[partnerNftAddress][businessTokenAddress][
-                businessTokenId
-            ].length - 1
-        ];
+        ].at(randomIndex);
         partnerNfts[partnerNftAddress][businessTokenAddress][businessTokenId]
-            .pop();
+            .remove(tokenId);
     }
 
     function isPartnerNft(

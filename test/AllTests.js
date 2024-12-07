@@ -143,7 +143,7 @@ describe("BusinessChain Contracts", function () {
 			const [owner, otherAccount] = await ethers.getSigners();
 
 			const PartnerNFTService = await ethers.getContractFactory("PartnerNFTService");
-			const partnerNFTService = await PartnerNFTService.deploy();
+			const partnerNFTService = await PartnerNFTService.deploy(owner);
 			return { partnerNFTService };
 		}
 
@@ -166,15 +166,28 @@ describe("BusinessChain Contracts", function () {
 			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
 			await partnerNFT.connect(partnerNFTOwner).setApprovalForAll(partnerNFTService, true);
-			await partnerNFTService.connect(partnerNFTOwner).bulkReceive(partnerNFT, [0, 1, 2, 3, 4], 0, businessToken);
+			const partnerNFTTotalSupply = await partnerNFT.totalSupply();
+			const allTokens = [];
+			let i = 0;
+			while (i < partnerNFTTotalSupply) {
+				allTokens.push(i);
+				i++;
+			}
+
+			await partnerNFTService.connect(partnerNFTOwner).bulkReceive(partnerNFT, allTokens, 0, businessToken);
 
 			const partnerNFTInitialBalance = await partnerNFT.balanceOf(otherAccount);
 
-			await partnerNFTService.transferPartnerNFT(0, businessToken, partnerNFT, otherAccount);
+			i = 0;
+			while (i < partnerNFTTotalSupply) {
+				await partnerNFTService.transferPartnerNFT(0, businessToken, partnerNFT, otherAccount, false);
+				i++;
+			}
+
 			const partnerNFTBalance = await partnerNFT.balanceOf(otherAccount);
 
 			expect(0).to.equal(partnerNFTInitialBalance);
-			expect(1).to.equal(partnerNFTBalance);
+			expect(partnerNFTTotalSupply).to.equal(partnerNFTBalance);
 		});
 	});
 });
