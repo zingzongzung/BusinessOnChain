@@ -6,10 +6,17 @@ import {IDynamicToken} from "./../interfaces/IDynamicToken.sol";
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract PartnerNFTService is IERC721Receiver {
-    // Mapping to track token owners
-    mapping(address => mapping(uint256 => address)) public tokenOwners;
+    using EnumerableSet for EnumerableSet.AddressSet;
+
+    //errors
+    error NotAllowedToTransferPartnerNFT(uint, address, address);
+
+    //Data that holds information about partner nfts holded on this contract
+    mapping(address => mapping(uint => EnumerableSet.AddressSet)) businessTokenPartnerNFTS;
+    mapping(address => mapping(address => mapping(uint => uint[]))) partnerNfts;
 
     event TokenReceived(
         address indexed from,
@@ -22,74 +29,110 @@ contract PartnerNFTService is IERC721Receiver {
         uint256[] tokenIds
     );
 
-    function transferPartnerNFT(uint businessTokenId) external {}
+    function addPartnerNFT(
+        uint businessTokenId,
+        address businessTokenAddress,
+        address partnerNftAddress
+    ) internal {
+        if (
+            !isPartnerNft(
+                businessTokenId,
+                businessTokenAddress,
+                partnerNftAddress
+            )
+        ) {
+            businessTokenPartnerNFTS[businessTokenAddress][businessTokenId].add(
+                    partnerNftAddress
+                );
+        }
+    }
+
+    function transferPartnerNFT(
+        uint businessTokenId,
+        address businessTokenAddress,
+        address partnerNftAddress,
+        address receiverNFTAddress
+    ) external {
+        IERC721 businessToken = IERC721(businessTokenAddress);
+        if (
+            businessToken.ownerOf(businessTokenId) != msg.sender ||
+            !isPartnerNft(
+                businessTokenId,
+                businessTokenAddress,
+                partnerNftAddress
+            )
+        ) {
+            revert NotAllowedToTransferPartnerNFT(
+                businessTokenId,
+                businessTokenAddress,
+                partnerNftAddress
+            );
+        }
+        IERC721 partnerNFTContract = IERC721(partnerNftAddress);
+        partnerNFTContract.safeTransferFrom(
+            address(this),
+            receiverNFTAddress,
+            getPartnerNFTTokenId(
+                receiverNFTAddress,
+                businessTokenAddress,
+                businessTokenId
+            )
+        );
+    }
+
+    function getPartnerNFTTokenId(
+        address partnerNftAddress,
+        address businessTokenAddress,
+        uint businessTokenId
+    ) internal returns (uint tokenId) {
+        tokenId = partnerNfts[partnerNftAddress][businessTokenAddress][
+            businessTokenId
+        ][
+            partnerNfts[partnerNftAddress][businessTokenAddress][
+                businessTokenId
+            ].length
+        ];
+        partnerNfts[partnerNftAddress][businessTokenAddress][businessTokenId]
+            .pop();
+    }
+
+    function isPartnerNft(
+        uint businessTokenId,
+        address businessTokenAddress,
+        address partnerNftAddress
+    ) internal returns (bool isPartner) {
+        isPartner = businessTokenPartnerNFTS[businessTokenAddress][
+            businessTokenId
+        ].contains(partnerNftAddress);
+    }
 
     // Bulk function to transfer multiple NFTs
     function bulkReceive(
-        address tokenContract,
+        address partnerNftAddress,
         uint256[] calldata tokenIds,
-        address businessTokenAddress,
-        uint businessTokenId
+        uint businessTokenId,
+        address businessTokenAddress
     ) external {
+        addPartnerNFT(businessTokenId, businessTokenAddress, partnerNftAddress);
         for (uint256 i = 0; i < tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
 
             // Transfer the token from the sender to this contract
-            IERC721(tokenContract).safeTransferFrom(
+            IERC721(partnerNftAddress).safeTransferFrom(
                 msg.sender,
                 address(this),
                 tokenId
             );
 
             // Record the token's owner
-            tokenOwners[tokenContract][tokenId] = msg.sender;
+            partnerNfts[partnerNftAddress][businessTokenAddress][
+                businessTokenId
+            ].push(tokenId);
 
-            emit TokenReceived(msg.sender, tokenId, tokenContract);
+            emit TokenReceived(msg.sender, tokenId, partnerNftAddress);
         }
 
-        emit TokensReceived(msg.sender, tokenContract, tokenIds);
-    }
-
-    // Allow token withdrawal by the owner
-    function withdrawToken(address tokenContract, uint256 tokenId) external {
-        require(
-            tokenOwners[tokenContract][tokenId] == msg.sender,
-            "Not the token owner"
-        );
-
-        // Clear the ownership record
-        tokenOwners[tokenContract][tokenId] = address(0);
-
-        // Transfer the token back to the owner
-        IERC721(tokenContract).safeTransferFrom(
-            address(this),
-            msg.sender,
-            tokenId
-        );
-    }
-
-    // Withdraw multiple tokens
-    function bulkWithdraw(
-        address tokenContract,
-        uint256[] calldata tokenIds
-    ) external {
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            uint256 tokenId = tokenIds[i];
-            require(
-                tokenOwners[tokenContract][tokenId] == msg.sender,
-                "Not the token owner"
-            );
-
-            // Clear the ownership record
-            tokenOwners[tokenContract][tokenId] = address(0);
-
-            // Transfer the token back to the owner
-            IERC721(tokenContract).safeTransferFrom(
-                address(this),
-                msg.sender,
-                tokenId
-            );
-        }
+        emit TokensReceived(msg.sender, partnerNftAddress, tokenIds);
     }
 
     // Implement IERC721Receiver to accept ERC-721 tokens
