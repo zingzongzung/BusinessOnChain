@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract PartnerNFTService is IERC721Receiver, AccessControl {
+contract PartnerNFTService is IERC721Receiver {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     //errors
@@ -56,7 +56,7 @@ contract PartnerNFTService is IERC721Receiver, AccessControl {
             address(this),
             receiverNFTAddress,
             getPartnerNFTTokenId(
-                receiverNFTAddress,
+                partnerNftAddress,
                 businessTokenAddress,
                 businessTokenId
             )
@@ -133,7 +133,7 @@ contract PartnerNFTService is IERC721Receiver, AccessControl {
         ][
             partnerNfts[partnerNftAddress][businessTokenAddress][
                 businessTokenId
-            ].length
+            ].length - 1
         ];
         partnerNfts[partnerNftAddress][businessTokenAddress][businessTokenId]
             .pop();
