@@ -84,7 +84,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         IERC721 nftToken = tokenAddress == address(this)
             ? this
             : IERC721(tokenAddress);
-        if (ownerOf(tokenId) != msg.sender) {
+        if (nftToken.ownerOf(tokenId) != msg.sender) {
             revert TokenNotOwned();
         }
         _;

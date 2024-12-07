@@ -24,4 +24,8 @@ const printTokenAttrs = async (contract, tokenId) => {
 	}
 };
 
-module.exports = { stringToBytes32, bytes32ToString, printTokenAttrs };
+const config = {
+	adminWallet: "0x30ed1a5FB009d6B68EEf3099239727604541bAd4",
+};
+
+module.exports = { stringToBytes32, bytes32ToString, printTokenAttrs, config };

@@ -21,7 +21,7 @@ abstract contract RootToken is IRootToken, NodeToken {
         address to,
         bytes32 _tokenImageId,
         bytes32[] memory attributeValues
-    ) external virtual onlyRole(MINTER_ROLE) {
+    ) external virtual {
         require(isRootNodeToken, "This token can't be minted as root level ");
         internalSafeMint(to, _tokenImageId, attributeValues);
     }
@@ -58,6 +58,17 @@ abstract contract RootToken is IRootToken, NodeToken {
         address serviceTokenAddress = nodeService.getNodeTokenAddress();
         revokeChildNodeManagement(tokenId, serviceTokenAddress);
         serviceAddressByTokenAddress[serviceTokenAddress] = address(0);
+    }
+
+    function getManagedServices(
+        uint tokenId
+    ) external view returns (address[] memory managedServices) {
+        uint256 setLength = trackedServices[tokenId].length();
+        managedServices = new address[](setLength);
+
+        for (uint256 i = 0; i < setLength; i++) {
+            managedServices[i] = trackedServices[tokenId].at(i);
+        }
     }
 
     function isManagingService(

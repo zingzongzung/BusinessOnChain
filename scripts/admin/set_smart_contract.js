@@ -5,23 +5,18 @@ require("dotenv").config();
 const resources = {
 	LoyaltyToken: {
 		artifact: "./../../artifacts/contracts/core/LoyaltyToken.sol/LoyaltyToken.json",
-		type: 2,
+		type: 1,
 		needsAddress: true,
 	},
-	LoyaltyTokenManager: {
-		artifact: "./../../artifacts/contracts/core/LoyaltyTokenManager.sol/LoyaltyTokenManager.json",
-		type: 1,
+	LoyaltyService: {
+		artifact: "./../../artifacts/contracts/core/LoyaltyService.sol/LoyaltyService.json",
+		type: 3,
 		needsAddress: true,
 	},
 
 	BusinessToken: {
 		artifact: "./../../artifacts/contracts/core/BusinessToken.sol/BusinessToken.json",
-		type: 4,
-		needsAddress: true,
-	},
-	BusinessTokenManager: {
-		artifact: "./../../artifacts/contracts/core/BusinessTokenManager.sol/BusinessTokenManager.json",
-		type: 3,
+		type: 2,
 		needsAddress: true,
 	},
 };

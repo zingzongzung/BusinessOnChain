@@ -7,8 +7,9 @@ import {IDynamicToken} from "./../interfaces/IDynamicToken.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract PartnerNFTService is IERC721Receiver {
+contract PartnerNFTService is IERC721Receiver, AccessControl {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     //errors
@@ -28,24 +29,6 @@ contract PartnerNFTService is IERC721Receiver {
         address indexed tokenContract,
         uint256[] tokenIds
     );
-
-    function addPartnerNFT(
-        uint businessTokenId,
-        address businessTokenAddress,
-        address partnerNftAddress
-    ) internal {
-        if (
-            !isPartnerNft(
-                businessTokenId,
-                businessTokenAddress,
-                partnerNftAddress
-            )
-        ) {
-            businessTokenPartnerNFTS[businessTokenAddress][businessTokenId].add(
-                    partnerNftAddress
-                );
-        }
-    }
 
     function transferPartnerNFT(
         uint businessTokenId,
@@ -80,32 +63,6 @@ contract PartnerNFTService is IERC721Receiver {
         );
     }
 
-    function getPartnerNFTTokenId(
-        address partnerNftAddress,
-        address businessTokenAddress,
-        uint businessTokenId
-    ) internal returns (uint tokenId) {
-        tokenId = partnerNfts[partnerNftAddress][businessTokenAddress][
-            businessTokenId
-        ][
-            partnerNfts[partnerNftAddress][businessTokenAddress][
-                businessTokenId
-            ].length
-        ];
-        partnerNfts[partnerNftAddress][businessTokenAddress][businessTokenId]
-            .pop();
-    }
-
-    function isPartnerNft(
-        uint businessTokenId,
-        address businessTokenAddress,
-        address partnerNftAddress
-    ) internal returns (bool isPartner) {
-        isPartner = businessTokenPartnerNFTS[businessTokenAddress][
-            businessTokenId
-        ].contains(partnerNftAddress);
-    }
-
     // Bulk function to transfer multiple NFTs
     function bulkReceive(
         address partnerNftAddress,
@@ -113,6 +70,9 @@ contract PartnerNFTService is IERC721Receiver {
         uint businessTokenId,
         address businessTokenAddress
     ) external {
+        IERC721 businessToken = IERC721(businessTokenAddress);
+        businessToken.ownerOf(businessTokenId); //This will revert if the token hasnt been minted or has been burned. In that case we shouldnt allow the items to be sent to this contract.
+
         addPartnerNFT(businessTokenId, businessTokenAddress, partnerNftAddress);
         for (uint256 i = 0; i < tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
@@ -143,5 +103,49 @@ contract PartnerNFTService is IERC721Receiver {
         bytes calldata data
     ) external override returns (bytes4) {
         return this.onERC721Received.selector;
+    }
+
+    function addPartnerNFT(
+        uint businessTokenId,
+        address businessTokenAddress,
+        address partnerNftAddress
+    ) internal {
+        if (
+            !isPartnerNft(
+                businessTokenId,
+                businessTokenAddress,
+                partnerNftAddress
+            )
+        ) {
+            businessTokenPartnerNFTS[businessTokenAddress][businessTokenId].add(
+                    partnerNftAddress
+                );
+        }
+    }
+
+    function getPartnerNFTTokenId(
+        address partnerNftAddress,
+        address businessTokenAddress,
+        uint businessTokenId
+    ) internal returns (uint tokenId) {
+        tokenId = partnerNfts[partnerNftAddress][businessTokenAddress][
+            businessTokenId
+        ][
+            partnerNfts[partnerNftAddress][businessTokenAddress][
+                businessTokenId
+            ].length
+        ];
+        partnerNfts[partnerNftAddress][businessTokenAddress][businessTokenId]
+            .pop();
+    }
+
+    function isPartnerNft(
+        uint businessTokenId,
+        address businessTokenAddress,
+        address partnerNftAddress
+    ) internal view returns (bool isPartner) {
+        isPartner = businessTokenPartnerNFTS[businessTokenAddress][
+            businessTokenId
+        ].contains(partnerNftAddress);
     }
 }

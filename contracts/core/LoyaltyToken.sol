@@ -31,7 +31,9 @@ contract LoyaltyToken is ChildToken {
         LoyaltyService loyaltyService = LoyaltyService(
             fatherToken.getServiceAddressByTokenAddress(address(this))
         );
-        uint extraPoints = loyaltyService.getLoyaltyTokenMultiplier(msg.sender);
+        uint extraPoints = loyaltyService.getLoyaltyTokenMultiplier(
+            ownerOf(tokenId)
+        );
         super.setFatherManagedTrait(
             tokenId,
             LoyaltyTokenAttributes.POINTS_ATTR,

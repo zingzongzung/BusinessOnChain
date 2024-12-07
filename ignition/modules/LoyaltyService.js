@@ -7,7 +7,7 @@ const LoyaltyServiceModule = buildModule("LoyaltyServiceModule", (m) => {
 
 	const loyaltyToken = m.contract("LoyaltyToken", [account1]);
 
-	const loyaltyService = m.contract("LoyaltyService", [loyaltyToken]);
+	const loyaltyService = m.contract("LoyaltyService", [account1, loyaltyToken]);
 
 	const addService = m.call(businessToken, "addManagedService", [0, loyaltyService], {
 		//after: [mintRole],

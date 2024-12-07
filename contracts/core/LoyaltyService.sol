@@ -7,8 +7,9 @@ import {INodeService} from "./../interfaces/INodeService.sol";
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract LoyaltyService is INodeService {
+contract LoyaltyService is INodeService, AccessControl {
     address private _loyaltyTokenAddress;
 
     address[] private registeredCollections;
@@ -22,11 +23,14 @@ contract LoyaltyService is INodeService {
 
     mapping(address => mapping(uint => LoyaltyPrize[])) asf;
 
-    constructor(address loyaltyToken) {
+    constructor(address defaultAdmin, address loyaltyToken) {
+        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _loyaltyTokenAddress = loyaltyToken;
     }
 
-    function addCollection(address tokenCollection) external {
+    function addCollection(
+        address tokenCollection
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         registeredCollections.push(tokenCollection);
     }
 

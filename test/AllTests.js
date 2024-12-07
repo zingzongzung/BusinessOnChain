@@ -15,9 +15,22 @@ describe("BusinessChain Contracts", function () {
 		const loyaltyToken = await LoyaltyToken.deploy(owner.address);
 
 		const LoyaltyService = await ethers.getContractFactory("LoyaltyService");
-		const loyaltyService = await LoyaltyService.deploy(loyaltyToken);
+		const loyaltyService = await LoyaltyService.deploy(owner, loyaltyToken);
 
 		return { owner, otherAccount, businessToken, loyaltyToken, loyaltyService };
+	}
+
+	async function deployMockNFTContractFixture() {
+		const [owner, otherAccount, mockNFTOwner] = await ethers.getSigners();
+		const MockNFT = await ethers.getContractFactory("MockNFT");
+		const mockNFT = await MockNFT.deploy(owner.address);
+		let i = 0;
+		while (i < 50) {
+			await mockNFT.safeMint(mockNFTOwner.address);
+			i++;
+		}
+
+		return { mockNFT, mockNFTOwner };
 	}
 
 	describe("Stake Service contract", function () {
@@ -102,22 +115,15 @@ describe("BusinessChain Contracts", function () {
 
 		it("Can Add Points with multiplier 3", async function () {
 			const { owner, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+			const { mockNFT: shapeCraftKey, mockNFTOwner } = await loadFixture(deployMockNFTContractFixture);
 
 			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
-			const ShapeCraftKey = await ethers.getContractFactory("ShapeCraftKey");
-			const shapeCraftKey = await ShapeCraftKey.deploy(owner.address);
-			let i = 0;
-			while (i < 50) {
-				await shapeCraftKey.safeMint(owner.address);
-				i++;
-			}
-
 			await loyaltyService.addCollection(shapeCraftKey);
-
 			await businessToken.addManagedService(0, loyaltyService);
+
 			await loyaltyToken.safeMint(
-				owner.address,
+				mockNFTOwner.address,
 				stringToBytes32("ImageId"),
 				[stringToBytes32("A Shop"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
 				0,
@@ -129,6 +135,27 @@ describe("BusinessChain Contracts", function () {
 			expect(await loyaltyToken.getTraitValue(0, "0x506f696e74730000000000000000000000000000000000000000000000000000")).to.equal(
 				"0x0000000000000000000000000000000000000000000000000000000000000004"
 			);
+		});
+	});
+
+	describe("Partner NFT Service ", function () {
+		async function deployPartnerNFTFixture() {
+			const [owner, otherAccount] = await ethers.getSigners();
+
+			const PartnerNFTService = await ethers.getContractFactory("PartnerNFTService");
+			const partnerNFTService = await PartnerNFTService.deploy();
+			return { partnerNFTService };
+		}
+
+		it("Can Receive Bulk tokens", async function () {
+			const { owner, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+			const { partnerNFTService, partnerNFTOwner } = await loadFixture(deployPartnerNFTFixture);
+			const { mockNFT: partnerNFT } = await loadFixture(deployMockNFTContractFixture);
+
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+			//await partnerNFTOwner.connect(partnerNFTOwner).setApprovalForAll(contractAddress, true);
+			await partnerNFTService.connect(partnerNFTOwner).bulkReceive(partnerNFT, [0, 1, 2, 3, 4], 0, businessToken);
 		});
 	});
 });
