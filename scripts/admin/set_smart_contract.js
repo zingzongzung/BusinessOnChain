@@ -19,6 +19,18 @@ const resources = {
 		type: 2,
 		needsAddress: true,
 	},
+
+	PartnerNFTService: {
+		artifact: "./../../artifacts/contracts/core/PartnerNFTService.sol/PartnerNFTService.json",
+		type: 4,
+		needsAddress: true,
+	},
+
+	IERC721: {
+		artifact: "./../../artifacts/@openzeppelin/contracts/token/ERC721/IERC721.sol/IERC721.json",
+		type: 5,
+		needsAddress: true,
+	},
 };
 
 const setSmartContract = (contractName) => {

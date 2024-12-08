@@ -26,6 +26,9 @@ const printTokenAttrs = async (contract, tokenId) => {
 
 const config = {
 	adminWallet: "0x30ed1a5FB009d6B68EEf3099239727604541bAd4",
+	vrfOperator: {
+		sepolia: "0x7Ab2Dca880Cb3fE478a924f72d3381B1835E72bC",
+	},
 };
 
 module.exports = { stringToBytes32, bytes32ToString, printTokenAttrs, config };
