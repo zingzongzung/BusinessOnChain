@@ -58,9 +58,12 @@ contract LoyaltyToken is ChildToken {
         );
     }
 
+    /**
+     * address(this).toHexString() when replacing gettoken by actual address and make it trully dinamic
+     */
     function _baseURI() internal view virtual override returns (string memory) {
         return
-            "https://personal-ixqe4210.outsystemscloud.com/BusinessOnChain_API/rest/Token/GetBusinessTokenURI/";
+            "https://personal-ixqe4210.outsystemscloud.com/BusinessOnChain_API/rest/Token/GetLoyaltyTokenURI/";
     }
 
     function _baseImageURI()

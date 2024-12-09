@@ -40,4 +40,8 @@ contract MockNFT is ERC721, ERC721Enumerable, Ownable {
     ) public view virtual override(ERC721, ERC721Enumerable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
+
+    function collection() public view returns (string memory) {
+        return "collectionSlugForBON";
+    }
 }
