@@ -158,6 +158,26 @@ describe("BusinessChain Contracts", function () {
 			await partnerNFTService.connect(partnerNFTOwner).bulkReceive(partnerNFT, [0, 1, 2, 3, 4], 0, businessToken);
 		});
 
+		it("Can List Received Tokens", async function () {
+			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+			const { partnerNFTService } = await loadFixture(deployPartnerNFTFixture);
+			const { mockNFT: partnerNFT, mockNFTOwner: partnerNFTOwner } = await loadFixture(deployMockNFTContractFixture);
+
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+			const givenPartnerTokenIds = [0n, 1n, 2n, 3n, 4n];
+			await partnerNFT.connect(partnerNFTOwner).setApprovalForAll(partnerNFTService, true);
+			await partnerNFTService.connect(partnerNFTOwner).bulkReceive(partnerNFT, givenPartnerTokenIds, 0, businessToken);
+
+			const address = (await partnerNFTService.getPartnerNftAddresses(businessToken, 0))[0];
+
+			const tokenIds = await partnerNFTService.getPartnerNFTTokenIds(address, businessToken, 0);
+			const hasAllTokens = givenPartnerTokenIds.every((tokenId) => tokenIds.includes(tokenId));
+
+			expect(address).to.equal(partnerNFT.target);
+			expect(hasAllTokens).to.equal(true);
+		});
+
 		it("Can Send received Tokens", async function () {
 			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
 			const { partnerNFTService } = await loadFixture(deployPartnerNFTFixture);

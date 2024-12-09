@@ -140,6 +140,44 @@ contract PartnerNFTService is IERC721Receiver, GelatoVRFConsumerBase {
         emit TokensReceived(msg.sender, partnerNftAddress, tokenIds);
     }
 
+    //Helper functions to list partnerNFTs
+    function getPartnerNftAddresses(
+        address businessTokenAddress,
+        uint businessTokenId
+    ) external view returns (address[] memory) {
+        uint256 setLength = businessTokenPartnerNFTS[businessTokenAddress][
+            businessTokenId
+        ].length();
+        address[] memory addressArray = new address[](setLength);
+
+        for (uint256 i = 0; i < setLength; i++) {
+            addressArray[i] = businessTokenPartnerNFTS[businessTokenAddress][
+                businessTokenId
+            ].at(i);
+        }
+
+        return addressArray;
+    }
+
+    function getPartnerNFTTokenIds(
+        address partnerNftAddress,
+        address businessTokenAddress,
+        uint businessTokenId
+    ) external view returns (uint[] memory) {
+        uint256 setLength = partnerNfts[partnerNftAddress][
+            businessTokenAddress
+        ][businessTokenId].length();
+        uint[] memory tokenIds = new uint[](setLength);
+
+        for (uint256 i = 0; i < setLength; i++) {
+            tokenIds[i] = partnerNfts[partnerNftAddress][businessTokenAddress][
+                businessTokenId
+            ].at(i);
+        }
+
+        return tokenIds;
+    }
+
     //Gelato VRF
     function requestRandomness(
         VRFPartnerNFTRequest memory requestData
