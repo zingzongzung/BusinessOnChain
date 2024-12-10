@@ -20,6 +20,7 @@ abstract contract DynamicToken is
 
     uint256 private _nextTokenId;
     mapping(uint => uint) tokenURIVersion;
+    bytes32[] baseTokenAttributes;
     bytes32[] tokenAttributes;
 
     mapping(uint => bytes32) tokenImageId;
@@ -48,12 +49,29 @@ abstract contract DynamicToken is
         tokenAttributes = attributes;
     }
 
-    function getTokenAttributes()
-        external
-        view
-        returns (bytes32[] memory attributes)
-    {
-        return tokenAttributes;
+    function _addBaseTokenAddtribute(bytes32 attribute) internal {
+        baseTokenAttributes.push(attribute);
+    }
+
+    function getTokenAttributes() external view returns (bytes32[] memory) {
+        return concatenate(baseTokenAttributes, tokenAttributes);
+    }
+
+    function concatenate(
+        bytes32[] memory array1,
+        bytes32[] memory array2
+    ) internal pure returns (bytes32[] memory) {
+        bytes32[] memory result = new bytes32[](array1.length + array2.length);
+
+        for (uint i = 0; i < array1.length; i++) {
+            result[i] = array1[i];
+        }
+
+        for (uint j = 0; j < array2.length; j++) {
+            result[array1.length + j] = array2[j];
+        }
+
+        return result;
     }
 
     function _updateTokenURI(uint tokenId) internal {

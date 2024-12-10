@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {LoyaltyTokenAttributes} from "./../libraries/LoyaltyTokenAttributes.sol";
+import {Constants} from "./../libraries/Constants.sol";
 import {IDynamicToken} from "./../interfaces/IDynamicToken.sol";
 import {INodeService} from "./../interfaces/INodeService.sol";
 

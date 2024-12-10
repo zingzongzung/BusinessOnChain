@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {LoyaltyTokenAttributes} from "./../libraries/LoyaltyTokenAttributes.sol";
 import {IDynamicToken} from "./../interfaces/IDynamicToken.sol";
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";

@@ -136,6 +136,27 @@ describe("BusinessChain Contracts", function () {
 				"0x0000000000000000000000000000000000000000000000000000000000000004"
 			);
 		});
+
+		it("Can return father token from the node", async function () {
+			const { owner, businessToken, loyaltyToken, loyaltyService, otherAccount } = await loadFixture(deployContractsFixture);
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+			await businessToken.addManagedService(0, loyaltyService);
+			await loyaltyToken.safeMint(
+				otherAccount,
+				stringToBytes32("ImageId"),
+				[stringToBytes32("A Shop"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
+				0,
+				businessToken
+			);
+
+			const tokenId = await loyaltyToken.getTraitValue(0, "0x4661746865722049640000000000000000000000000000000000000000000000");
+			const tokenAddressHex = await loyaltyToken.getTraitValue(0, "0x4661746865722041646472657373000000000000000000000000000000000000");
+			const tokenAddress = "0x" + tokenAddressHex.slice(26);
+
+			expect(tokenId).to.equal("0x0000000000000000000000000000000000000000000000000000000000000000");
+			expect(tokenAddress.toLowerCase()).to.equal(businessToken.target.toLowerCase());
+		});
 	});
 
 	describe("Partner NFT Service ", function () {

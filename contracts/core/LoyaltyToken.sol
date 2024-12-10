@@ -4,7 +4,7 @@ pragma solidity ^0.8.27;
 import {IRootToken} from "./../interfaces/IRootToken.sol";
 import {LoyaltyService} from "./LoyaltyService.sol";
 import {ChildToken} from "./../implementations/ChildToken.sol";
-import {LoyaltyTokenAttributes} from "./../libraries/LoyaltyTokenAttributes.sol";
+import {Constants} from "./../libraries/Constants.sol";
 
 contract LoyaltyToken is ChildToken {
     error NotEnoughPoints();
@@ -13,8 +13,8 @@ contract LoyaltyToken is ChildToken {
         address defaultAdmin
     ) ChildToken(defaultAdmin, "LoyaltyToken", "LTK") {
         bytes32[] memory attributes = new bytes32[](2);
-        attributes[0] = LoyaltyTokenAttributes.NAME_ATTR;
-        attributes[1] = LoyaltyTokenAttributes.POINTS_ATTR;
+        attributes[0] = Constants.NAME_ATTR;
+        attributes[1] = Constants.POINTS_ATTR;
         _setTokenAttributes(attributes);
     }
 
@@ -24,7 +24,7 @@ contract LoyaltyToken is ChildToken {
         address fatherAddress
     ) external {
         uint currentPoints = uint(
-            getTraitValue(tokenId, LoyaltyTokenAttributes.POINTS_ATTR)
+            getTraitValue(tokenId, Constants.POINTS_ATTR)
         );
 
         IRootToken fatherToken = IRootToken(fatherAddress);
@@ -36,7 +36,7 @@ contract LoyaltyToken is ChildToken {
         );
         super.setFatherManagedTrait(
             tokenId,
-            LoyaltyTokenAttributes.POINTS_ATTR,
+            Constants.POINTS_ATTR,
             bytes32(currentPoints + 1 + extraPoints),
             rootTokenId,
             fatherAddress
@@ -45,7 +45,7 @@ contract LoyaltyToken is ChildToken {
 
     function redeemPoints(uint tokenId, uint pointsToRedeem) external {
         uint currentPoints = uint(
-            getTraitValue(tokenId, LoyaltyTokenAttributes.POINTS_ATTR)
+            getTraitValue(tokenId, Constants.POINTS_ATTR)
         );
         if (pointsToRedeem > currentPoints) {
             revert NotEnoughPoints();
@@ -53,7 +53,7 @@ contract LoyaltyToken is ChildToken {
 
         setOwnerManagedTrait(
             tokenId,
-            LoyaltyTokenAttributes.POINTS_ATTR,
+            Constants.POINTS_ATTR,
             bytes32(currentPoints - pointsToRedeem)
         );
     }
