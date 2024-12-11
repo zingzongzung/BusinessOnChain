@@ -33,6 +33,14 @@ describe("BusinessChain Contracts", function () {
 		return { mockNFT, mockNFTOwner };
 	}
 
+	async function deployPartnerNFTFixture() {
+		const [owner, otherAccount] = await ethers.getSigners();
+
+		const PartnerNFTService = await ethers.getContractFactory("PartnerNFTService");
+		const partnerNFTService = await PartnerNFTService.deploy(owner);
+		return { partnerNFTService };
+	}
+
 	describe("Stake Service contract", function () {
 		it("Can Stake asset", async function () {
 			const { businessToken, owner } = await loadFixture(deployContractsFixture);
@@ -65,12 +73,21 @@ describe("BusinessChain Contracts", function () {
 			expect(await businessToken.totalSupply()).to.equal(ownerBalance);
 		});
 
-		it("Can Add Service to Root Token", async function () {
+		it("Can Add Loyalty Service to Root Token", async function () {
 			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
 
 			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
 			await businessToken.addManagedService(0, loyaltyService);
+		});
+
+		it("Can Add Partner Service to Root Token", async function () {
+			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
+			const { partnerNFTService } = await loadFixture(deployPartnerNFTFixture);
+
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+
+			await businessToken.addManagedService(0, partnerNFTService);
 		});
 
 		it("Can Mint Child token to other Account", async function () {
@@ -160,14 +177,6 @@ describe("BusinessChain Contracts", function () {
 	});
 
 	describe("Partner NFT Service ", function () {
-		async function deployPartnerNFTFixture() {
-			const [owner, otherAccount] = await ethers.getSigners();
-
-			const PartnerNFTService = await ethers.getContractFactory("PartnerNFTService");
-			const partnerNFTService = await PartnerNFTService.deploy(owner);
-			return { partnerNFTService };
-		}
-
 		it("Can Receive Bulk tokens", async function () {
 			const { owner, otherAccount, businessToken, loyaltyToken, loyaltyService } = await loadFixture(deployContractsFixture);
 			const { partnerNFTService } = await loadFixture(deployPartnerNFTFixture);
@@ -205,17 +214,29 @@ describe("BusinessChain Contracts", function () {
 			const { mockNFT: partnerNFT, mockNFTOwner: partnerNFTOwner } = await loadFixture(deployMockNFTContractFixture);
 
 			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
+			await businessToken.addManagedService(1, loyaltyService);
+			await loyaltyToken.safeMint(
+				owner,
+				stringToBytes32("ImageId"),
+				[stringToBytes32("A Shop"), "0x0000000000000000000000000000000000000000000000000000000000000000"],
+				1,
+				businessToken
+			);
 
 			await partnerNFT.connect(partnerNFTOwner).setApprovalForAll(partnerNFTService, true);
-			const partnerNFTTotalSupply = await partnerNFT.totalSupply();
+			const partnerNFTTotalSupply = 31;
 			const allTokens = [];
 			let i = 0;
 			while (i < partnerNFTTotalSupply) {
 				allTokens.push(i);
 				i++;
 			}
-
 			await partnerNFTService.connect(partnerNFTOwner).bulkReceive(partnerNFT, allTokens, 0, businessToken);
+
+			await loyaltyToken.setApprovalForAll(partnerNFTService, true);
+			await partnerNFTService.bulkReceive(loyaltyToken, [0], 1, businessToken);
+			await partnerNFTService.transferPartnerNFT(1, businessToken, loyaltyToken, owner, false);
 
 			const partnerNFTInitialBalance = await partnerNFT.balanceOf(otherAccount);
 

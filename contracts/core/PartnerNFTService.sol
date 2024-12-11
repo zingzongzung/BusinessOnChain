@@ -8,8 +8,13 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import {GelatoVRFConsumerBase} from "./../gelato_vrf/GelatoVRFConsumerBase.sol";
+import {INodeService} from "./../interfaces/INodeService.sol";
 
-contract PartnerNFTService is IERC721Receiver, GelatoVRFConsumerBase {
+contract PartnerNFTService is
+    IERC721Receiver,
+    GelatoVRFConsumerBase,
+    INodeService
+{
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -259,9 +264,15 @@ contract PartnerNFTService is IERC721Receiver, GelatoVRFConsumerBase {
         uint businessTokenId,
         address businessTokenAddress,
         address partnerNftAddress
-    ) internal view returns (bool isPartner) {
+    ) public view returns (bool isPartner) {
         isPartner = businessTokenPartnerNFTS[businessTokenAddress][
             businessTokenId
         ].contains(partnerNftAddress);
     }
+
+    function getNodeTokenAddress()
+        external
+        view
+        returns (address tokenAddress)
+    {}
 }

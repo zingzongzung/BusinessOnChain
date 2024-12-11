@@ -37,7 +37,10 @@ abstract contract RootToken is IRootToken, NodeToken {
         trackedServices[tokenId].add(serviceAddress);
         INodeService nodeService = INodeService(serviceAddress);
         address serviceTokenAddress = nodeService.getNodeTokenAddress();
-        allowChildNodeManagement(tokenId, serviceTokenAddress);
+        if (serviceTokenAddress != address(0)) {
+            allowChildNodeManagement(tokenId, serviceTokenAddress);
+        }
+
         serviceAddressByTokenAddress[serviceTokenAddress] = serviceAddress;
     }
 
