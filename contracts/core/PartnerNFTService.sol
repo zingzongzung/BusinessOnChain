@@ -67,26 +67,17 @@ contract PartnerNFTService is IERC721Receiver, GelatoVRFConsumerBase {
                 partnerNftAddress
             );
         }
+
+        VRFPartnerNFTRequest memory partnerNFT = VRFPartnerNFTRequest(
+            partnerNftAddress,
+            businessTokenAddress,
+            businessTokenId,
+            receiverNFTAddress
+        );
         if (useVRF) {
-            VRFPartnerNFTRequest memory requestData = VRFPartnerNFTRequest(
-                partnerNftAddress,
-                businessTokenAddress,
-                businessTokenId,
-                receiverNFTAddress
-            );
-            requestRandomness(requestData);
+            requestRandomness(partnerNFT);
         } else {
-            IERC721 partnerNFTContract = IERC721(partnerNftAddress);
-            partnerNFTContract.safeTransferFrom(
-                address(this),
-                receiverNFTAddress,
-                getPartnerNFTTokenId(
-                    partnerNftAddress,
-                    businessTokenAddress,
-                    businessTokenId,
-                    0 //in this case the element retrieved will always be the first one
-                )
-            );
+            _transferPartnerNFT(partnerNFT, 0);
         }
     }
 
@@ -94,17 +85,36 @@ contract PartnerNFTService is IERC721Receiver, GelatoVRFConsumerBase {
         VRFPartnerNFTRequest memory partnerNFT,
         uint randomness
     ) internal {
+        uint tokenId = getPartnerNFTTokenId(
+            partnerNFT.partnerNftAddress,
+            partnerNFT.businessTokenAddress,
+            partnerNFT.businessTokenId,
+            randomness
+        );
+
         IERC721 partnerNFTContract = IERC721(partnerNFT.partnerNftAddress);
         partnerNFTContract.safeTransferFrom(
             address(this),
             partnerNFT.receiverNFTAddress,
-            getPartnerNFTTokenId(
-                partnerNFT.partnerNftAddress,
-                partnerNFT.businessTokenAddress,
-                partnerNFT.businessTokenId,
-                randomness
-            )
+            tokenId
         );
+
+        //Remove from contract memory
+        partnerNfts[partnerNFT.partnerNftAddress][
+            partnerNFT.businessTokenAddress
+        ][partnerNFT.businessTokenId].remove(tokenId);
+        if (
+            //if the set is empty remove the partner nft address
+            EnumerableSet.length(
+                partnerNfts[partnerNFT.partnerNftAddress][
+                    partnerNFT.businessTokenAddress
+                ][partnerNFT.businessTokenId]
+            ) == 0
+        ) {
+            businessTokenPartnerNFTS[partnerNFT.businessTokenAddress][
+                partnerNFT.businessTokenId
+            ].remove(partnerNFT.partnerNftAddress);
+        }
     }
 
     // Bulk function to transfer multiple NFTs
