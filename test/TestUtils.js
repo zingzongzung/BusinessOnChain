@@ -29,6 +29,9 @@ const config = {
 	vrfOperator: {
 		sepolia: "0x7Ab2Dca880Cb3fE478a924f72d3381B1835E72bC",
 	},
+	gasbackAddress: {
+		sepolia: "0xdF329d59bC797907703F7c198dDA2d770fC45034",
+	},
 };
 
 module.exports = { stringToBytes32, bytes32ToString, printTokenAttrs, config };

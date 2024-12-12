@@ -9,9 +9,9 @@ const LoyaltyServiceModule = buildModule("LoyaltyServiceModule", (m) => {
 
 	const loyaltyService = m.contract("LoyaltyService", [account1, loyaltyToken]);
 
-	const addService = m.call(businessToken, "addManagedService", [0, loyaltyService], {
-		//after: [mintRole],
-	});
+	// const addService = m.call(businessToken, "addManagedService", [0, loyaltyService], {
+	// 	//after: [mintRole],
+	// });
 
 	//Remove mint from deploy
 	// m.call(
@@ -29,7 +29,7 @@ const LoyaltyServiceModule = buildModule("LoyaltyServiceModule", (m) => {
 	// 	}
 	// );
 
-	return { loyaltyService };
+	return { loyaltyService, loyaltyToken };
 });
 
 module.exports = LoyaltyServiceModule;
