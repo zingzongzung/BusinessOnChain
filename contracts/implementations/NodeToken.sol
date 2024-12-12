@@ -8,7 +8,9 @@ import {INodeToken} from "./../interfaces/INodeToken.sol";
 import {DynamicToken} from "./../abstract/DynamicToken.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-abstract contract NodeToken is INodeToken, DynamicToken {
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+abstract contract NodeToken is INodeToken, DynamicToken, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using ERC165Checker for address;
 
@@ -40,7 +42,7 @@ abstract contract NodeToken is INodeToken, DynamicToken {
         string memory name,
         string memory symbol,
         bool _isRootNodeToken
-    ) DynamicToken(defaultAdmin, name, symbol) {
+    ) DynamicToken(defaultAdmin, name, symbol) Ownable(msg.sender) {
         isRootNodeToken = _isRootNodeToken;
     }
 

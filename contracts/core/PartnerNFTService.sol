@@ -9,11 +9,13 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import {GelatoVRFConsumerBase} from "./../gelato_vrf/GelatoVRFConsumerBase.sol";
 import {INodeService} from "./../interfaces/INodeService.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract PartnerNFTService is
     IERC721Receiver,
     GelatoVRFConsumerBase,
-    INodeService
+    INodeService,
+    Ownable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -46,7 +48,7 @@ contract PartnerNFTService is
         uint256[] tokenIds
     );
 
-    constructor(address vrfOperator) {
+    constructor(address vrfOperator) Ownable(msg.sender) {
         vrfOperatorAddress = vrfOperator;
     }
 
