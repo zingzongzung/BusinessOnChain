@@ -29,7 +29,7 @@ const resources = {
 	IERC721: {
 		artifact: "./../../artifacts/@openzeppelin/contracts/token/ERC721/IERC721.sol/IERC721.json",
 		type: 5,
-		needsAddress: true,
+		needsAddress: false,
 	},
 };
 
@@ -81,6 +81,7 @@ const setSmartContract = (contractName) => {
 	// Username and password
 	const username = process.env.OS_ADMIN;
 	const password = process.env.OS_ADMIN_PASS;
+	const uploadContractsEndpoint = process.env.OS_HOST;
 
 	// Base64 encode the credentials
 	const credentials = btoa(username + ":" + password);
@@ -88,7 +89,7 @@ const setSmartContract = (contractName) => {
 	// Create the Authorization header
 	const authHeaderValue = `Basic ${credentials}`;
 
-	fetch(`https://personal-ixqe4210.outsystemscloud.com/BusinessOnChain_API/rest/Admin/UploadSmartContractCode`, {
+	fetch(uploadContractsEndpoint, {
 		headers: {
 			Authorization: authHeaderValue,
 			"Content-Type": "application/json",
