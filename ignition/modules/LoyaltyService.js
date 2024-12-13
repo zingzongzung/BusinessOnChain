@@ -1,11 +1,9 @@
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
-const businessTokenModule = require("./BusinessToken.js");
 
 const LoyaltyServiceModule = buildModule("LoyaltyServiceModule", (m) => {
-	const { businessToken } = m.useModule(businessTokenModule);
 	const account1 = m.getAccount(0);
 
-	const loyaltyToken = m.contract("LoyaltyToken", [account1]);
+	const loyaltyToken = m.contract("LoyaltyToken", []);
 
 	const loyaltyService = m.contract("LoyaltyService", [account1, loyaltyToken]);
 

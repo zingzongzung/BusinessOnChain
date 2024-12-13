@@ -5,14 +5,12 @@ import {IDynamicToken} from "./../interfaces/IDynamicToken.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 abstract contract DynamicToken is
     ERC721,
     ERC721Enumerable,
     ERC721URIStorage,
-    AccessControl,
     IDynamicToken
 {
     using Strings for uint256;
@@ -32,18 +30,9 @@ abstract contract DynamicToken is
     error InvalidNumberOfAttributes();
 
     constructor(
-        address defaultAdmin,
         string memory name,
         string memory symbol
-    ) ERC721(name, symbol) {
-        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
-    }
-
-    function grantMintRole(
-        address minter
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _grantRole(MINTER_ROLE, minter);
-    }
+    ) ERC721(name, symbol) {}
 
     function _setTokenAttributes(bytes32[] memory attributes) internal {
         tokenAttributes = attributes;
@@ -220,7 +209,7 @@ abstract contract DynamicToken is
         public
         view
         virtual
-        override(ERC721, ERC721Enumerable, ERC721URIStorage, AccessControl)
+        override(ERC721, ERC721Enumerable, ERC721URIStorage)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

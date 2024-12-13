@@ -4,9 +4,7 @@ pragma solidity ^0.8.27;
 import {RootToken} from "./../implementations/RootToken.sol";
 
 contract BusinessToken is RootToken {
-    constructor(
-        address defaultAdmin
-    ) RootToken(defaultAdmin, "BusinessToken", "BTK") {
+    constructor() RootToken("BusinessToken", "BTK") {
         bytes32[] memory attributes = new bytes32[](2);
         attributes[0] = bytes32(abi.encodePacked("Name"));
         attributes[1] = bytes32(abi.encodePacked("Sector"));

@@ -8,11 +8,10 @@ describe("BusinessChain Contracts", function () {
 		const [owner, otherAccount] = await ethers.getSigners();
 
 		const BusinessToken = await ethers.getContractFactory("BusinessToken");
-		const businessToken = await BusinessToken.deploy(owner.address);
-		await businessToken.grantMintRole(owner.address);
+		const businessToken = await BusinessToken.deploy();
 
 		const LoyaltyToken = await ethers.getContractFactory("LoyaltyToken");
-		const loyaltyToken = await LoyaltyToken.deploy(owner.address);
+		const loyaltyToken = await LoyaltyToken.deploy();
 
 		const LoyaltyService = await ethers.getContractFactory("LoyaltyService");
 		const loyaltyService = await LoyaltyService.deploy(owner, loyaltyToken);
@@ -23,7 +22,7 @@ describe("BusinessChain Contracts", function () {
 	async function deployMockNFTContractFixture() {
 		const [owner, otherAccount, mockNFTOwner] = await ethers.getSigners();
 		const MockNFT = await ethers.getContractFactory("MockNFT");
-		const mockNFT = await MockNFT.deploy(owner.address);
+		const mockNFT = await MockNFT.deploy(owner);
 		let i = 0;
 		while (i < 50) {
 			await mockNFT.safeMint(mockNFTOwner.address);

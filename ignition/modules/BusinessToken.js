@@ -1,8 +1,7 @@
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 const BusinessTokenModule = buildModule("BusinessTokenModule", (m) => {
-	const account1 = m.getAccount(0);
-	const businessToken = m.contract("BusinessToken", [account1]);
+	const businessToken = m.contract("BusinessToken", []);
 
 	// m.call(businessToken, "safeMint", [
 	// 	"0xCe190cab58c6524b7f8e8541bA9Dd0C683bA4dfE",

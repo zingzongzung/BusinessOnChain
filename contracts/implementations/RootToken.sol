@@ -12,10 +12,9 @@ abstract contract RootToken is IRootToken, NodeToken {
     mapping(address => address) private serviceAddressByTokenAddress;
 
     constructor(
-        address defaultAdmin,
         string memory name,
         string memory symbol
-    ) NodeToken(defaultAdmin, name, symbol, true) {}
+    ) NodeToken(name, symbol, true) {}
 
     function safeMint(
         address to,

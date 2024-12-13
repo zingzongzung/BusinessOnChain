@@ -6,10 +6,9 @@ import {Constants} from "./../libraries/Constants.sol";
 
 abstract contract ChildToken is NodeToken {
     constructor(
-        address defaultAdmin,
         string memory name,
         string memory symbol
-    ) NodeToken(defaultAdmin, name, symbol, false) {
+    ) NodeToken(name, symbol, false) {
         _addBaseTokenAddtribute(Constants.FATHER_TOKEN_ID);
         _addBaseTokenAddtribute(Constants.FATHER_TOKEN_ADDRESS);
     }

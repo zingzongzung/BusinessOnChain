@@ -6,10 +6,12 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {INodeToken} from "./../interfaces/INodeToken.sol";
 import {DynamicToken} from "./../abstract/DynamicToken.sol";
-import {GasbackContract} from "./../abstract/GasbackContract.sol";
+
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-abstract contract NodeToken is INodeToken, DynamicToken, GasbackContract {
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+abstract contract NodeToken is INodeToken, DynamicToken, Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using ERC165Checker for address;
 
@@ -37,11 +39,10 @@ abstract contract NodeToken is INodeToken, DynamicToken, GasbackContract {
         type(INodeToken).interfaceId;
 
     constructor(
-        address defaultAdmin,
         string memory name,
         string memory symbol,
         bool _isRootNodeToken
-    ) DynamicToken(defaultAdmin, name, symbol) {
+    ) DynamicToken(name, symbol) Ownable(msg.sender) {
         isRootNodeToken = _isRootNodeToken;
     }
 

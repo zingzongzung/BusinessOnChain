@@ -9,9 +9,7 @@ import {Constants} from "./../libraries/Constants.sol";
 contract LoyaltyToken is ChildToken {
     error NotEnoughPoints();
 
-    constructor(
-        address defaultAdmin
-    ) ChildToken(defaultAdmin, "LoyaltyToken", "LTK") {
+    constructor() ChildToken("LoyaltyToken", "LTK") {
         bytes32[] memory attributes = new bytes32[](2);
         attributes[0] = Constants.NAME_ATTR;
         attributes[1] = Constants.POINTS_ATTR;
