@@ -194,11 +194,11 @@ describe("BusinessChain Contracts", function () {
 
 			await businessToken.safeMint(owner.address, stringToBytes32("ImageId"), [stringToBytes32("A Shop"), stringToBytes32("Restaurant")]);
 
-			const givenPartnerTokenIds = [0n, 1n, 2n, 3n, 4n];
+			const givenPartnerTokenIds = [1n, 2n, 3n, 4n];
 			await partnerNFT.connect(partnerNFTOwner).setApprovalForAll(partnerNFTService, true);
 			await partnerNFTService.connect(partnerNFTOwner).bulkReceive(partnerNFT, givenPartnerTokenIds, 0, businessToken);
 
-			const address = (await partnerNFTService.getPartnerNftAddresses(businessToken, 0))[0];
+			const address = (await partnerNFTService.getPartnerNftAddresses(businessToken, 0))[0][0];
 
 			const tokenIds = await partnerNFTService.getPartnerNFTTokenIds(address, businessToken, 0);
 			const hasAllTokens = givenPartnerTokenIds.every((tokenId) => tokenIds.includes(tokenId));

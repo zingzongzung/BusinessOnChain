@@ -160,19 +160,23 @@ contract PartnerNFTService is
     function getPartnerNftAddresses(
         address businessTokenAddress,
         uint businessTokenId
-    ) external view returns (address[] memory) {
+    ) external view returns (address[] memory, uint[] memory) {
         uint256 setLength = businessTokenPartnerNFTS[businessTokenAddress][
             businessTokenId
         ].length();
         address[] memory addressArray = new address[](setLength);
+        uint[] memory tokenIds = new uint[](setLength);
 
         for (uint256 i = 0; i < setLength; i++) {
             addressArray[i] = businessTokenPartnerNFTS[businessTokenAddress][
                 businessTokenId
             ].at(i);
+            tokenIds[i] = partnerNfts[addressArray[i]][businessTokenAddress][
+                businessTokenId
+            ].at(0);
         }
 
-        return addressArray;
+        return (addressArray, tokenIds);
     }
 
     function getPartnerNFTTokenIds(
