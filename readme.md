@@ -79,7 +79,7 @@ We have created tools and modules to aid in development on OutSystems and intera
 
 ### Running the Frontend in Your Environment
 
-To run the frontend after deploying the smart contracts:
+If you have downloaded the component you must send the contract information to the OS servers. To do that follow the next steps:
 
 1. Navigate to the `scripts` directory:
 
