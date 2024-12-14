@@ -25,7 +25,7 @@ const SHAPE_MAINNET_RPC_URL = "https://shape-mainnet.g.alchemy.com/v2/" + ALCHEM
 module.exports = {
 	solidity: "0.8.27",
 	networks: {
-		shape: {
+		"shape-mainnet": {
 			url: SHAPE_MAINNET_RPC_URL, // Shape Testnet RPC URL
 			chainId: 360, // Shape Testnet Network ID
 			accounts: [SHAPE_PK],
@@ -40,5 +40,20 @@ module.exports = {
 			chainId: 11155111, // Shape Testnet Network ID
 			accounts: [SHAPE_PK],
 		},
+	},
+	etherscan: {
+		apiKey: {
+			"shape-mainnet": "empty",
+		},
+		customChains: [
+			{
+				network: "shape-mainnet",
+				chainId: 360,
+				urls: {
+					apiURL: "https://shapescan.xyz/api",
+					browserURL: "https://shapescan.xyz",
+				},
+			},
+		],
 	},
 };
