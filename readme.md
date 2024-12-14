@@ -62,9 +62,12 @@ npx hardhat ignition deploy ignition/modules/GasbackService.js --network <networ
 ### Notes:
 
 - The Gasback service module deploys a specific smart contract that:
+
   - Mints a Gasback token.
   - Associates it with every interactable contract on BoN.
   - Sends the token to the user executing the deployment.
+
+- Gasback is a system that rewards users with tokens for interactions with the BoN ecosystem. As a creator on Shape, you can claim back 80% of sequencer fees users spend interacting with your contracts. For more details, refer to the [Gasback Documentation](https://docs.shape.network/documentation/building-on-shape/gasback).
 
 ## Frontend
 
